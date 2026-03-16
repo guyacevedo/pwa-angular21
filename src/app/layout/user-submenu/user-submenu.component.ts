@@ -196,10 +196,16 @@ export class UserSubmenuComponent {
       })
       .subscribe(async (result) => {
         if (result) {
-          // Navigate first to avoid flash of empty dashboard
-          this.router.navigate(['/auth/login'], { replaceUrl: true });
-          // Then logout (which will update auth state)
-          await this.authFacade.logout();
+          try {
+            // Logout first to update auth state
+            await this.authFacade.logout();
+            // Then navigate to login (guard will redirect if user is null)
+            await this.router.navigate(['/auth/login'], { replaceUrl: true });
+          } catch (error) {
+            console.error('Logout error:', error);
+            // Fallback: navigate to login anyway
+            this.router.navigate(['/auth/login'], { replaceUrl: true });
+          }
         }
       });
   }
