@@ -111,9 +111,11 @@ jobs:
         run: |
           if [ -z "${{ secrets.FIREBASE_PROJECT_ID }}" ] || [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
             echo "⚠️ Skipping Firebase deployment: required secrets not configured"
-            exit 0
+            echo "FIREBASE_CONFIGURED=false" >> $GITHUB_ENV
+          else
+            echo "✅ All required secrets are present"
+            echo "FIREBASE_CONFIGURED=true" >> $GITHUB_ENV
           fi
-          echo "✅ All required secrets are present"
 
       - name: Create environment files for deployment
         run: |
@@ -180,6 +182,7 @@ jobs:
           ls -lh dist/pwa-angular21/ 2>/dev/null | head -20 || echo "Build output not found"
 
       - name: Deploy to Firebase Hosting
+        if: env.FIREBASE_CONFIGURED == 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
