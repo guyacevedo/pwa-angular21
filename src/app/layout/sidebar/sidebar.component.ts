@@ -19,16 +19,13 @@ interface MenuSection {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [
-    RouterLink,
-    RouterLinkActive,
-    BrandComponent,
-    SvgIconComponent,
-  ],
+  imports: [RouterLink, RouterLinkActive, BrandComponent, SvgIconComponent],
   template: `
     <div class="flex flex-col h-full bg-white dark:bg-slate-950">
-      <!-- Header: Brand -->
-      <div class="flex-none px-4 py-5 border-b border-slate-100 dark:border-slate-800">
+      <!-- Header: Brand with iOS safe-area -->
+      <div
+        class="flex-none px-4 py-5 border-b border-slate-100 dark:border-slate-800 safe-area-top"
+      >
         <app-brand [isSmall]="false"></app-brand>
       </div>
 
@@ -36,7 +33,9 @@ interface MenuSection {
         <nav class="space-y-6 px-3">
           @for (group of menu(); track group.section) {
             <div>
-              <h3 class="px-3 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">
+              <h3
+                class="px-3 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5"
+              >
                 {{ group.section }}
               </h3>
               <ul class="space-y-0.5">
@@ -45,7 +44,7 @@ interface MenuSection {
                     <a
                       [routerLink]="item.url"
                       routerLinkActive="sidebar-item-active"
-                      [routerLinkActiveOptions]="{exact: false}"
+                      [routerLinkActiveOptions]="{ exact: false }"
                       (click)="menuClose.emit()"
                       class="relative flex items-center px-3 py-2.5 text-sm rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
                     >
@@ -66,7 +65,11 @@ interface MenuSection {
 
       <!-- Footer: Versión -->
       <div class="flex-none px-4 py-3 border-t border-slate-100 dark:border-slate-800">
-        <p class="text-[10px] text-center text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">v0.0.0</p>
+        <p
+          class="text-[10px] text-center text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest"
+        >
+          v0.0.0
+        </p>
       </div>
     </div>
   `,
@@ -93,12 +96,14 @@ export class SidebarComponent {
         section: 'General',
         items: [{ icon: 'home', label: 'Dashboard', url: '/dashboard' }],
       },
-      ...(adminItems.length > 0 ? [
-        {
-          section: 'Administración',
-          items: adminItems,
-        },
-      ] : []),
+      ...(adminItems.length > 0
+        ? [
+            {
+              section: 'Administración',
+              items: adminItems,
+            },
+          ]
+        : []),
     ];
   });
 }

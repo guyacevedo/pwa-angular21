@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, PLATFORM_ID, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from './sidebar/sidebar.component';
@@ -8,22 +15,21 @@ import { AuthFacade } from '../features/auth/auth.facade';
 
 @Component({
   selector: 'app-main-layout',
-  imports: [
-    RouterOutlet,
-    SidebarComponent,
-    HeaderComponent,
-    FooterComponent,
-  ],
+  imports: [RouterOutlet, SidebarComponent, HeaderComponent, FooterComponent],
   template: `
     @if (!authFacade.authReady()) {
       <div class="flex h-screen w-full items-center justify-center bg-slate-50 dark:bg-slate-900">
-        <div class="animate-spin size-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        <div
+          class="animate-spin size-8 border-4 border-primary border-t-transparent rounded-full"
+        ></div>
       </div>
     } @else {
       <div class="flex h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-900">
         <!-- Sidebar for Desktop -->
         @if (isSplitPaneVisible()) {
-          <aside class="w-72 shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+          <aside
+            class="w-72 shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950"
+          >
             <app-sidebar></app-sidebar>
           </aside>
         }
@@ -70,7 +76,9 @@ import { AuthFacade } from '../features/auth/auth.facade';
           </main>
 
           @if (!isSplitPaneVisible()) {
-            <app-footer></app-footer>
+            <div class="safe-area-bottom">
+              <app-footer></app-footer>
+            </div>
           }
         </div>
       </div>
