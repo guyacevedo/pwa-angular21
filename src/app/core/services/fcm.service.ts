@@ -140,20 +140,7 @@ export class FcmService {
     }) => void,
   ): void {
     // Store callback to be called when messages arrive
-    this.foregroundCallback = (payload) => {
-      onMessage$(payload);
-
-      // Show notification even in foreground
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then((registration) => {
-          registration.showNotification(payload.notification?.title || 'Nueva Notificación', {
-            body: payload.notification?.body || '',
-            icon: payload.notification?.icon || '/favicon.ico',
-            badge: '/favicon.ico',
-            data: payload.data || {},
-          });
-        });
-      }
-    };
+    // NOTE: app.ts already calls registration.showNotification() — do NOT duplicate here
+    this.foregroundCallback = onMessage$;
   }
 }
