@@ -13,7 +13,9 @@
     "test:watch": "ng test --watch",
     "serve:ssr:pwa-angular21": "node dist/pwa-angular21/server/server.mjs",
     "prepare": "husky",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "prebuild": "node scripts/generate-sw.js",
+    "prestart": "node scripts/generate-sw.js"
   },
   "prettier": {
     "printWidth": 100,
