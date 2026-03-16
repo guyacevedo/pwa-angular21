@@ -24,16 +24,31 @@
     <meta name="theme-color" content="#003366" />
     <link rel="manifest" href="manifest.webmanifest" />
 
-    <!-- iOS PWA: Set viewport height BEFORE Angular renders -->
+    <!-- iOS PWA: Fix viewport height BEFORE Angular renders -->
     <script>
       (function () {
-        function setVh() {
-          document.documentElement.style.setProperty('--real-vh', window.innerHeight * 0.01 + 'px');
+        function fixiOSViewport() {
+          const vh = window.innerHeight * 0.01;
+          const viewportHeight = vh * 100 + 'px';
+          // Set CSS variable
+          document.documentElement.style.setProperty('--real-vh', vh + 'px');
+          // Force exact heights on html/body to prevent blank space
+          document.documentElement.style.height = viewportHeight;
+          document.documentElement.style.minHeight = viewportHeight;
+          document.body.style.height = viewportHeight;
+          document.body.style.minHeight = viewportHeight;
         }
-        setVh();
-        window.addEventListener('resize', setVh);
+        // Initial fix
+        fixiOSViewport();
+        // Refix on resize
+        window.addEventListener('resize', fixiOSViewport);
+        // Refix on orientation change (iOS needs delay)
+        window.addEventListener('orientationchange', () => {
+          setTimeout(fixiOSViewport, 200);
+        });
+        // Refix on visual viewport changes (keyboard open/close)
         if ('visualViewport' in window) {
-          window.visualViewport?.addEventListener('resize', setVh);
+          window.visualViewport?.addEventListener('resize', fixiOSViewport);
         }
       })();
     </script>
