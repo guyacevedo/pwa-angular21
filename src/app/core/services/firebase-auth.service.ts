@@ -68,9 +68,27 @@ export class FirebaseAuthService implements AuthRepository {
 
   async login(email: string, password: string): Promise<void> {
     await signInWithEmailAndPassword(this.auth, email, password);
+    // Update user lastLogin and status to ACTIVE after login
+    const currentUser = this.auth.currentUser;
+    if (currentUser) {
+      await this.userService.updateUser({
+        id: currentUser.uid,
+        lastLogin: new Date(),
+        status: 'ACTIVE',
+      });
+    }
   }
 
   async logout(): Promise<void> {
+    // Update user lastLogout and status to INACTIVE before logout
+    const currentUser = this.auth.currentUser;
+    if (currentUser) {
+      await this.userService.updateUser({
+        id: currentUser.uid,
+        lastLogout: new Date(),
+        status: 'INACTIVE',
+      });
+    }
     await signOut(this.auth);
   }
 

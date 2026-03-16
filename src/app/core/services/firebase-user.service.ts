@@ -27,6 +27,7 @@ export class FirebaseUserService implements UserRepository {
       const userWithProfilePicture: User = {
         ...user,
         profilePictureUrl: user.profilePictureUrl || defaultProfilePictureUrl,
+        status: 'INACTIVE', // New users are created with INACTIVE status
       };
 
       const userRef = doc(collection(this.firestore, 'users'), userWithProfilePicture.id);
