@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, DestroyRef } from '@angular/core';
 import { User } from '../../core/models';
 import { AuthFacade } from '../auth/auth.facade';
 import { USER_REPOSITORY } from 'src/app/core/interfaces/user.repository';
@@ -7,11 +7,13 @@ import { USER_REPOSITORY } from 'src/app/core/interfaces/user.repository';
 export class UserFacade {
   private userService = inject(USER_REPOSITORY);
   private authFacade = inject(AuthFacade);
+  private destroyRef = inject(DestroyRef);
 
   // Señales privadas (fuente de verdad)
   private _loading = signal(false);
   private _error = signal<string | null>(null);
   private _users = signal<User[]>([]);
+  private unsubscribe: (() => void) | null = null;
 
   // Señales públicas para interactuar con el servicio de usuarios
   readonly isLoading = this._loading.asReadonly();
@@ -123,15 +125,37 @@ export class UserFacade {
   async getUsers(): Promise<void> {
     this._loading.set(true);
     this._error.set(null);
+
     try {
-      const users = await this.userService.getActiveUsers();
-      this._users.set(users);
+      // Unsubscribe from previous listener if exists
+      if (this.unsubscribe) {
+        this.unsubscribe();
+      }
+
+      // Subscribe to realtime updates of all users (active and inactive)
+      this.unsubscribe = this.userService.getAllUsers(
+        (users: User[]) => {
+          this._users.set(users);
+          this._loading.set(false);
+        },
+        (error: Error) => {
+          const errorMessage = error.message || 'Error obteniendo usuarios';
+          this._error.set(errorMessage);
+          this._loading.set(false);
+        },
+      );
+
+      // Register cleanup on component destroy
+      this.destroyRef.onDestroy(() => {
+        if (this.unsubscribe) {
+          this.unsubscribe();
+        }
+      });
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Error obteniendo usuarios';
       this._error.set(errorMessage);
-      throw err;
-    } finally {
       this._loading.set(false);
+      throw err;
     }
   }
 }

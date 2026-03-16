@@ -5,6 +5,7 @@ export interface UserRepository {
   createUser(user: User): Promise<void>;
   dniExists(dni: string): Promise<boolean>;
   getActiveUsers(): Promise<User[]>;
+  getAllUsers(onSuccess: (users: User[]) => void, onError?: (error: Error) => void): () => void;
   getUserById(id: string): Promise<User | null>;
   getUsersByIds(ids: string[]): Promise<User[]>;
   getUserByUId(uid: string): Promise<User | null>;

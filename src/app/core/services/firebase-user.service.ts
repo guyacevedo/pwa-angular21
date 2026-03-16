@@ -9,6 +9,7 @@ import {
   setDoc,
   where,
   updateDoc,
+  onSnapshot,
 } from '@angular/fire/firestore';
 import { UserRepository } from '../../../app/core/interfaces/user.repository';
 import { User } from '../../core/models';
@@ -55,6 +56,27 @@ export class FirebaseUserService implements UserRepository {
         } as User;
       });
     });
+  }
+
+  getAllUsers(onSuccess: (users: User[]) => void, onError?: (error: Error) => void): () => void {
+    const q = query(collection(this.firestore, 'users'));
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const users = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            ...data,
+            ...mapUserDates(data),
+          } as User;
+        });
+        onSuccess(users);
+      },
+      (error) => {
+        console.error('Error fetching users:', error);
+        if (onError) onError(error as Error);
+      },
+    );
   }
 
   async getUserByUId(uid: string): Promise<User | null> {
