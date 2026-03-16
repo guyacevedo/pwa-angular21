@@ -85,7 +85,7 @@ jobs:
         run: pnpm lint
 
       - name: Run tests
-        run: pnpm test --watch=false --reporter=verbose
+        run: pnpm test --watch=false
 
   build-and-deploy:
     name: Build and Deploy to Firebase
