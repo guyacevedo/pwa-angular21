@@ -5,13 +5,11 @@ import { TabsComponent } from '../tabs/tabs.component';
   selector: 'app-footer',
   standalone: true,
   imports: [TabsComponent],
-  template: `
-    <app-tabs></app-tabs>
-  `,
+  template: ` <app-tabs></app-tabs> `,
   styles: [],
   host: {
-    class: 'flex-none z-40',
+    class: 'flex-none z-40 w-full safe-area-bottom',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FooterComponent { }
+export class FooterComponent {}

@@ -76,9 +76,7 @@ import { AuthFacade } from '../features/auth/auth.facade';
           </main>
 
           @if (!isSplitPaneVisible()) {
-            <div class="safe-area-bottom">
-              <app-footer></app-footer>
-            </div>
+            <app-footer></app-footer>
           }
         </div>
       </div>
