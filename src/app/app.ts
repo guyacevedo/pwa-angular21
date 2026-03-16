@@ -40,19 +40,11 @@ export class App implements OnInit {
     this.pwaUpdateService.init();
     // ThemeService se inyecta para inicializar el tema solo una vez al arrancar la app
 
-    // Register service worker for push notifications
-    this.registerServiceWorker();
-
     // Ocultar el splash HTML cuando Firebase resuelve el auth state
     effect(() => {
       if (this.authFacade.authReady()) {
         this.hideSplash();
       }
-    });
-
-    // Listen to foreground messages
-    this.fcmService.listenToForegroundMessages((payload) => {
-      console.log('[App] Foreground message received:', payload);
     });
 
     this.router.events
@@ -74,21 +66,28 @@ export class App implements OnInit {
     if (this.authFacade.authReady()) {
       this.hideSplash();
     }
+
+    // Initialize FCM in background after auth is ready
+    setTimeout(() => {
+      this.initializeFcm();
+    }, 1000);
   }
 
-  private registerServiceWorker(): void {
+  private initializeFcm(): void {
+    // Register service worker for push notifications
     if ('serviceWorker' in navigator) {
-      // Register in background - don't block app
-      setTimeout(() => {
-        navigator.serviceWorker
-          .register('/firebase-messaging-sw.js')
-          .then((registration) => {
-            console.log('[App] Service Worker registered:', registration);
-          })
-          .catch((error) => {
-            console.error('[App] Service Worker registration failed:', error);
+      navigator.serviceWorker
+        .register('/firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('[App] Service Worker registered:', registration);
+          // Listen to foreground messages after SW is ready
+          this.fcmService.listenToForegroundMessages((payload) => {
+            console.log('[App] Foreground message received:', payload);
           });
-      }, 0);
+        })
+        .catch((error) => {
+          console.error('[App] Service Worker registration failed:', error);
+        });
     }
   }
 
