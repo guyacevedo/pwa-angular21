@@ -1,10 +1,18 @@
-import { Component, inject, effect, OnInit, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import {
+  Component,
+  inject,
+  effect,
+  OnInit,
+  ChangeDetectionStrategy,
+  DestroyRef,
+} from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavigationEnd, Router } from '@angular/router';
 import { NavigationService } from './core/services/navigation.service';
 import { PwaUpdateService } from './core/services/pwa-update.service';
 import { ThemeService } from './core/services/theme.service';
 import { AuthFacade } from './features/auth/auth.facade';
+import { FcmService } from './core/services/fcm.service';
 import { filter } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -25,11 +33,15 @@ export class App implements OnInit {
   private readonly pwaUpdateService = inject(PwaUpdateService);
   private readonly authFacade = inject(AuthFacade);
   private readonly themeService = inject(ThemeService);
+  private readonly fcmService = inject(FcmService);
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
     this.pwaUpdateService.init();
     // ThemeService se inyecta para inicializar el tema solo una vez al arrancar la app
+
+    // Register service worker for push notifications
+    this.registerServiceWorker();
 
     // Ocultar el splash HTML cuando Firebase resuelve el auth state
     effect(() => {
@@ -38,10 +50,15 @@ export class App implements OnInit {
       }
     });
 
+    // Listen to foreground messages
+    this.fcmService.listenToForegroundMessages((payload) => {
+      console.log('[App] Foreground message received:', payload);
+    });
+
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((event: NavigationEnd) => {
         this.navigationService.setCurrentUrl(event.urlAfterRedirects);
@@ -56,6 +73,19 @@ export class App implements OnInit {
     // Fallback: si auth ya estaba listo antes del primer render, ocultarlo
     if (this.authFacade.authReady()) {
       this.hideSplash();
+    }
+  }
+
+  private registerServiceWorker(): void {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('[App] Service Worker registered:', registration);
+        })
+        .catch((error) => {
+          console.error('[App] Service Worker registration failed:', error);
+        });
     }
   }
 

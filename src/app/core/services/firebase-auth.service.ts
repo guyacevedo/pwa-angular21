@@ -15,6 +15,7 @@ import { AuthRepository } from '../../core/interfaces/auth.repository';
 import { User } from '../../core/models';
 import { FirebaseUserService } from './firebase-user.service';
 import { NotificationService } from './notification.service';
+import { FcmService } from './fcm.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
 
@@ -26,6 +27,7 @@ export class FirebaseAuthService implements AuthRepository {
   private userService = inject(FirebaseUserService);
   private firestore = inject(Firestore);
   private notificationService = inject(NotificationService);
+  private fcmService = inject(FcmService);
 
   private readonly _authReady = signal(false);
   public readonly authReady = this._authReady.asReadonly();
@@ -112,6 +114,9 @@ export class FirebaseAuthService implements AuthRepository {
     if (currentUser) {
       // Get user data for notification
       const userData = await this.userService.getUserByUId(currentUser.uid);
+
+      // Save FCM token for push notifications
+      await this.fcmService.saveFcmToken(currentUser.uid);
 
       await this.userService.updateUser({
         id: currentUser.uid,
