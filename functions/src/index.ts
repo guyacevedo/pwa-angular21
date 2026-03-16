@@ -64,11 +64,17 @@ export const sendAuthNotifications = functions.https.onCall(
 
       // Send notification to all tokens
       const messagePayload = {
+        tokens,
         notification: {
           title: notification.title,
           body: notification.body,
         },
-        data: notification.data,
+        data: {
+          action: notification.data.action,
+          userId: notification.data.userId,
+          userName: notification.data.userName,
+          userEmail: notification.data.userEmail,
+        },
         webpush: {
           fcmOptions: {
             link: '/users',
@@ -83,7 +89,7 @@ export const sendAuthNotifications = functions.https.onCall(
         },
       };
 
-      const response = await messaging.sendMulticast(messagePayload, false);
+      const response = await messaging.sendMulticast(messagePayload);
 
       // Log errors for failed sends
       if (response.failureCount > 0) {
