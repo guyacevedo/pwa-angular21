@@ -67,10 +67,10 @@ export class App implements OnInit {
       this.hideSplash();
     }
 
-    // Initialize FCM in background after auth is ready
-    setTimeout(() => {
+    // Initialize FCM in background after next microtask (non-blocking)
+    queueMicrotask(() => {
       this.initializeFcm();
-    }, 1000);
+    });
   }
 
   private initializeFcm(): void {
@@ -83,6 +83,18 @@ export class App implements OnInit {
           // Listen to foreground messages after SW is ready
           this.fcmService.listenToForegroundMessages((payload) => {
             console.log('[App] Foreground message received:', payload);
+            // Show notification in foreground
+            if (payload.notification) {
+              const title = payload.notification.title || 'Nueva Notificación';
+              const options = {
+                body: payload.notification.body || '',
+                icon: payload.notification.icon || '/favicon.ico',
+                badge: '/favicon.ico',
+                tag: 'app-notification',
+                requireInteraction: false,
+              };
+              registration.showNotification(title, options);
+            }
           });
         })
         .catch((error) => {

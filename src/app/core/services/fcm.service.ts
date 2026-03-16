@@ -6,6 +6,26 @@ import { Firestore, doc, setDoc } from '@angular/fire/firestore';
 export class FcmService {
   private messaging = inject(Messaging);
   private firestore = inject(Firestore);
+  private foregroundCallback:
+    | ((payload: {
+        notification?: { title?: string; body?: string; icon?: string };
+        data?: Record<string, string>;
+      }) => void)
+    | null = null;
+
+  constructor() {
+    // Set up onMessage listener early within injection context
+    try {
+      onMessage(this.messaging, (payload) => {
+        console.log('[FcmService] Foreground message received:', payload);
+        if (this.foregroundCallback) {
+          this.foregroundCallback(payload);
+        }
+      });
+    } catch (error) {
+      console.error('[FcmService] Error setting up foreground listener:', error);
+    }
+  }
 
   /**
    * Get FCM token without requesting permission
@@ -111,7 +131,7 @@ export class FcmService {
   }
 
   /**
-   * Listen to foreground messages
+   * Register callback for foreground messages
    */
   listenToForegroundMessages(
     onMessage$: (payload: {
@@ -119,26 +139,21 @@ export class FcmService {
       data?: Record<string, string>;
     }) => void,
   ): void {
-    try {
-      // Call onMessage directly within injection context
-      onMessage(this.messaging, (payload) => {
-        console.log('[FcmService] Foreground message received:', payload);
-        onMessage$(payload);
+    // Store callback to be called when messages arrive
+    this.foregroundCallback = (payload) => {
+      onMessage$(payload);
 
-        // Show notification even in foreground
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.ready.then((registration) => {
-            registration.showNotification(payload.notification?.title || 'Nueva Notificación', {
-              body: payload.notification?.body || '',
-              icon: payload.notification?.icon || '/favicon.ico',
-              badge: '/favicon.ico',
-              data: payload.data || {},
-            });
+      // Show notification even in foreground
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.showNotification(payload.notification?.title || 'Nueva Notificación', {
+            body: payload.notification?.body || '',
+            icon: payload.notification?.icon || '/favicon.ico',
+            badge: '/favicon.ico',
+            data: payload.data || {},
           });
-        }
-      });
-    } catch (error) {
-      console.error('[FcmService] Error listening to foreground messages:', error);
-    }
+        });
+      }
+    };
   }
 }
