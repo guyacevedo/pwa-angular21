@@ -75,5 +75,12 @@ service cloud.firestore {
       // Only admins can modify
       allow write: if isAdmin();
     }
+
+    match /config/{docId} {
+      // Any authenticated user can read (role-permissions doc lives here)
+      allow read: if request.auth != null;
+      // Only admins can write
+      allow write: if isAdmin();
+    }
   }
 }

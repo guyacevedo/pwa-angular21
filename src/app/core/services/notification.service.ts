@@ -73,4 +73,31 @@ export class NotificationService {
       console.error('Error sending logout notification:', error);
     }
   }
+
+  /**
+   * Notify affected roles when permissions are updated
+   */
+  async notifyPermissionsUpdated(
+    changedBy: string,
+    permissionLabel: string,
+    role: 'operator' | 'guest',
+    enabled: boolean,
+  ): Promise<void> {
+    try {
+      const roleLabel = role === 'operator' ? 'Operador' : 'Invitado';
+      await addDoc(collection(this.firestore, 'notifications'), {
+        title: 'Permisos actualizados',
+        body: `${changedBy} ${enabled ? 'activó' : 'desactivó'} "${permissionLabel}" para el rol ${roleLabel}.`,
+        action: 'PERMISSIONS_UPDATED',
+        role,
+        permissionLabel,
+        enabled,
+        timestamp: new Date(),
+        read: false,
+        sent: false,
+      });
+    } catch (error) {
+      console.error('Error sending permissions notification:', error);
+    }
+  }
 }

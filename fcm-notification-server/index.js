@@ -58,20 +58,28 @@ function startListeningToNotifications() {
         console.log(`[FCM Server] Processing notification: ${doc.id}`);
 
         try {
-          // Send to all admin users with FCM tokens
-          // Note: We query only by role to avoid needing a composite index
-          const usersSnapshot = await db
-            .collection('users')
-            .where('role', '==', 'ADMIN')
-            .get();
+          // Determine target roles based on notification action
+          let targetRoles = ['ADMIN'];
+          if (notification.action === 'PERMISSIONS_UPDATED' && notification.role) {
+            // Notify the affected role + admins
+            const roleMap = { operator: 'OPERATOR', guest: 'GUEST' };
+            const affectedRole = roleMap[notification.role];
+            if (affectedRole) targetRoles = ['ADMIN', affectedRole];
+          }
 
-          // Filter locally for users with FCM tokens
-          const adminUsersWithTokens = usersSnapshot.docs.filter((doc) => {
+          // Query all users and filter locally (avoids composite index requirement)
+          const allUsersSnapshot = await db.collection('users').get();
+          const adminUsersWithTokens = allUsersSnapshot.docs.filter((doc) => {
             const user = doc.data();
-            return user.fcmToken && typeof user.fcmToken === 'string' && user.fcmToken.length > 0;
+            return (
+              targetRoles.includes(user.role) &&
+              user.fcmToken &&
+              typeof user.fcmToken === 'string' &&
+              user.fcmToken.length > 0
+            );
           });
 
-          console.log(`[FCM Server] Found ${adminUsersWithTokens.length} admin users with FCM tokens`);
+          console.log(`[FCM Server] Found ${adminUsersWithTokens.length} target users with FCM tokens (roles: ${targetRoles.join(', ')})`);
 
           for (const userDoc of adminUsersWithTokens) {
             const user = userDoc.data();
