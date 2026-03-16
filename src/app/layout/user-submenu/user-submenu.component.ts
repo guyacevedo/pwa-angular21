@@ -196,14 +196,10 @@ export class UserSubmenuComponent {
       })
       .subscribe(async (result) => {
         if (result) {
-          // Navigate immediately to prevent dashboard flash
+          // Logout will set isLoggingOut signal, showing splash
+          await this.authFacade.logout();
+          // Navigate after logout completes
           await this.router.navigate(['/auth/login'], { replaceUrl: true });
-          // Logout in background - the layout effect will catch if user is still null
-          try {
-            await this.authFacade.logout();
-          } catch (error) {
-            console.error('Logout error:', error);
-          }
         }
       });
   }
