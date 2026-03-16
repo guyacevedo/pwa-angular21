@@ -196,8 +196,10 @@ export class UserSubmenuComponent {
       })
       .subscribe(async (result) => {
         if (result) {
+          // Navigate first to avoid flash of empty dashboard
+          this.router.navigate(['/auth/login'], { replaceUrl: true });
+          // Then logout (which will update auth state)
           await this.authFacade.logout();
-          this.router.navigate(['/auth/login']);
         }
       });
   }
