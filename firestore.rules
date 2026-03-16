@@ -50,5 +50,30 @@ service cloud.firestore {
       // Solo administradores pueden modificar la configuración
       allow write: if isAdmin();
     }
+
+    match /sessions/{sessionId} {
+      // Authenticated users can do anything with their own sessions
+      allow create, read, update, delete: if request.auth != null &&
+                                             (request.resource.data.userId == request.auth.uid ||
+                                              resource.data.userId == request.auth.uid);
+    }
+
+    match /notifications/{notifId} {
+      // Any authenticated user can create notifications (login/logout events)
+      allow create: if request.auth != null;
+      // Any authenticated user can read notifications
+      allow read: if request.auth != null;
+      // Any authenticated user can update (mark as read)
+      allow update: if request.auth != null;
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    match /role_permissions/{docId} {
+      // Any authenticated user can read role permissions
+      allow read: if request.auth != null;
+      // Only admins can modify
+      allow write: if isAdmin();
+    }
   }
 }

@@ -43,7 +43,7 @@ import { IconName } from '../../icons/icon-paths';
       }
 
       <input
-      lang="es"
+        lang="es"
         [type]="mask() ? 'text' : type()"
         [placeholder]="placeholder()"
         [autocomplete]="autocomplete()"
@@ -211,7 +211,19 @@ export class InputCustomComponent implements ControlValueAccessor {
         }
         newPos++;
       }
-      inputElement.setSelectionRange(newPos, newPos);
+      // Only set selection range if the input type supports it (not email, url, etc.)
+      if (
+        this.type() === 'text' ||
+        this.type() === 'password' ||
+        this.type() === 'tel' ||
+        this.type() === 'search'
+      ) {
+        try {
+          inputElement.setSelectionRange(newPos, newPos);
+        } catch {
+          // Silently fail if setSelectionRange is not supported for this input type
+        }
+      }
     });
   }
 

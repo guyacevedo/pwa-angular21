@@ -1,10 +1,18 @@
-import { Component, inject, effect, OnInit, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import {
+  Component,
+  inject,
+  effect,
+  OnInit,
+  ChangeDetectionStrategy,
+  DestroyRef,
+} from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavigationEnd, Router } from '@angular/router';
 import { NavigationService } from './core/services/navigation.service';
 import { PwaUpdateService } from './core/services/pwa-update.service';
 import { ThemeService } from './core/services/theme.service';
 import { AuthFacade } from './features/auth/auth.facade';
+import { FcmService } from './core/services/fcm.service';
 import { filter } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -13,7 +21,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   standalone: true,
   imports: [RouterOutlet],
   template: `
-    <main class="h-dvh w-screen overflow-hidden bg-background">
+    <main class="h-dvh w-screen bg-background">
       <router-outlet></router-outlet>
     </main>
   `,
@@ -25,6 +33,7 @@ export class App implements OnInit {
   private readonly pwaUpdateService = inject(PwaUpdateService);
   private readonly authFacade = inject(AuthFacade);
   private readonly themeService = inject(ThemeService);
+  private readonly fcmService = inject(FcmService);
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
@@ -41,7 +50,7 @@ export class App implements OnInit {
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((event: NavigationEnd) => {
         this.navigationService.setCurrentUrl(event.urlAfterRedirects);
@@ -56,6 +65,41 @@ export class App implements OnInit {
     // Fallback: si auth ya estaba listo antes del primer render, ocultarlo
     if (this.authFacade.authReady()) {
       this.hideSplash();
+    }
+
+    // Initialize FCM in background after next microtask (non-blocking)
+    queueMicrotask(() => {
+      this.initializeFcm();
+    });
+  }
+
+  private initializeFcm(): void {
+    // Register service worker for push notifications
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('[App] Service Worker registered:', registration);
+          // Listen to foreground messages after SW is ready
+          this.fcmService.listenToForegroundMessages((payload) => {
+            console.log('[App] Foreground message received:', payload);
+            // Show notification in foreground
+            if (payload.notification) {
+              const title = payload.notification.title || 'Nueva Notificación';
+              const options = {
+                body: payload.notification.body || '',
+                icon: payload.notification.icon || '/favicon.ico',
+                badge: '/favicon.ico',
+                tag: 'app-notification',
+                requireInteraction: false,
+              };
+              registration.showNotification(title, options);
+            }
+          });
+        })
+        .catch((error) => {
+          console.error('[App] Service Worker registration failed:', error);
+        });
     }
   }
 

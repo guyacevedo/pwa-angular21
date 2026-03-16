@@ -12,8 +12,8 @@ import { NgOptimizedImage } from '@angular/common';
         <img
           [ngSrc]="'/logo-comercializadora-neymar.svg'"
           alt="Logo Comercializadora Neymar"
-          [width]="56"
-          [height]="46"
+          [width]="85"
+          [height]="67"
           class="object-contain h-auto w-12 sm:w-14 shrink-0"
         />
         <div class="flex flex-col justify-center min-w-0">
@@ -36,8 +36,9 @@ import { NgOptimizedImage } from '@angular/common';
           <img
             [ngSrc]="'/logo-comercializadora-neymar.svg'"
             alt="Logo Comercializadora Neymar"
-            [width]="72"
-            [height]="48"
+            [width]="85"
+            [height]="67"
+            priority
             class="object-contain h-auto w-14 shrink-0"
           />
           <div class="flex flex-col justify-center min-w-0">

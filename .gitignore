@@ -80,6 +80,9 @@ firestore-debug.log
 functions/node_modules/
 *.rules.bak
 
+# Generated from template — contains secrets injected at build time
+public/firebase-messaging-sw.js
+
 # ========== DOCKER ==========
 .dockerignore
 docker-compose.override.yml

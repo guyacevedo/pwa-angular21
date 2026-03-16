@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { User } from '../../core/models';
 import { AUTH_REPOSITORY } from 'src/app/core/interfaces/auth.repository';
 import { AuthProvider } from 'src/app/core/interfaces/auth-provider.interface';
+import { FcmService } from 'src/app/core/services/fcm.service';
 
 @Injectable({
   providedIn: 'root',
@@ -11,10 +12,12 @@ export class AuthFacade implements AuthProvider {
   // Usando el token AUTH_REPOSITORY para inyectar la implementacion de AuthRepository
   private authService = inject(AUTH_REPOSITORY);
   private router = inject(Router);
+  private fcmService = inject(FcmService);
 
   // Estado reactivo con señales
   private _loading = signal<boolean>(false);
   private _error = signal<string | null>(null);
+  private _isLoggingOut = signal<boolean>(false);
 
   // Señales públicas
   readonly user: Signal<User | null> = this.authService.getCurrentUser;
@@ -23,6 +26,7 @@ export class AuthFacade implements AuthProvider {
   readonly authState$ = this.authService.authState$;
   readonly isLoading: Signal<boolean> = this._loading.asReadonly();
   readonly error: Signal<string | null> = this._error.asReadonly();
+  readonly isLoggingOut: Signal<boolean> = this._isLoggingOut.asReadonly();
 
   /*
    * Inicia sesión con las credenciales proporcionadas y actualiza el estado.
@@ -36,6 +40,28 @@ export class AuthFacade implements AuthProvider {
 
     try {
       await this.authService.login(email, password);
+
+      // Request notification permission and save FCM token
+      const user = this.authService.getCurrentUser();
+      if (user?.uid) {
+        // Request permission - this will show the browser prompt to the user
+        this.fcmService
+          .requestNotificationPermission()
+          .then((granted) => {
+            console.log('[AuthFacade] Notification permission granted:', granted);
+            if (granted) {
+              console.log('[AuthFacade] Saving FCM token for user:', user.uid);
+              // Permission granted, save token
+              this.fcmService.saveFcmToken(user.uid);
+            } else {
+              console.log('[AuthFacade] User denied notification permission');
+            }
+          })
+          .catch((error) => {
+            console.error('[AuthFacade] Error requesting notification permission:', error);
+          });
+      }
+
       // Pequeño delay para asegurar que el estado de Firebase esté sincronizado en el cliente
       // antes de disparar la navegación en modo zoneless.
       setTimeout(async () => {
@@ -81,6 +107,7 @@ export class AuthFacade implements AuthProvider {
    * @returns Promise<void>
    */
   async logout(): Promise<void> {
+    this._isLoggingOut.set(true);
     this._loading.set(true);
     this._error.set(null);
 
@@ -91,6 +118,7 @@ export class AuthFacade implements AuthProvider {
       this._error.set(message);
     } finally {
       this._loading.set(false);
+      this._isLoggingOut.set(false);
       this.consoleInform();
     }
   }

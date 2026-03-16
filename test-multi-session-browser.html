@@ -1,0 +1,323 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Multi-Session Test Helper</title>
+    <style>
+      body {
+        font-family: monospace;
+        background: #1e1e1e;
+        color: #00ff00;
+        padding: 20px;
+        max-width: 1200px;
+      }
+      .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .panel {
+        border: 2px solid #00ff00;
+        padding: 20px;
+        background: #0a0a0a;
+      }
+      h2 {
+        margin-top: 0;
+        color: #ffff00;
+      }
+      .output {
+        background: #000;
+        padding: 10px;
+        margin: 10px 0;
+        border-left: 3px solid #00ff00;
+        overflow-x: auto;
+      }
+      .error {
+        border-left-color: #ff0000;
+        color: #ff6666;
+      }
+      .success {
+        border-left-color: #00ff00;
+        color: #66ff66;
+      }
+      .warning {
+        border-left-color: #ffff00;
+        color: #ffff66;
+      }
+      button {
+        background: #00ff00;
+        color: #000;
+        border: none;
+        padding: 10px 20px;
+        margin: 5px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      button:hover {
+        background: #00cc00;
+      }
+      .tab-label {
+        color: #ffff00;
+        font-size: 14px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔄 Multi-Session Management Test</h1>
+
+    <div class="container">
+      <!-- S1 Tab -->
+      <div class="panel">
+        <h2>📑 Tab S1 (Session 1)</h2>
+        <button onclick="s1Login()">1. S1 Login</button>
+        <button onclick="s1Logout()">3. S1 Logout</button>
+        <button onclick="s1Check()">Check S1 State</button>
+        <button onclick="s1Clear()">Clear S1</button>
+
+        <div id="s1-output"></div>
+      </div>
+
+      <!-- S2 Tab -->
+      <div class="panel">
+        <h2>📑 Tab S2 (Session 2)</h2>
+        <button onclick="s2Login()">2. S2 Login</button>
+        <button onclick="s2Logout()">4. S2 Logout</button>
+        <button onclick="s2Check()">Check S2 State</button>
+        <button onclick="s2Clear()">Clear S2</button>
+
+        <div id="s2-output"></div>
+      </div>
+    </div>
+
+    <!-- Shared State -->
+    <div class="panel" style="margin-top: 20px">
+      <h2>📦 Shared State (localStorage)</h2>
+      <button onclick="checkShared()">Check Shared Sessions</button>
+      <button onclick="clearAll()">🗑️ Clear All Data</button>
+
+      <div id="shared-output"></div>
+    </div>
+
+    <!-- Test Results -->
+    <div class="panel" style="margin-top: 20px">
+      <h2>✅ Test Checklist</h2>
+      <div id="checklist"></div>
+    </div>
+
+    <script>
+      // Simulate S1 and S2 storage separately
+      let s1Storage = {};
+      let s2Storage = {};
+      let sharedStorage = {};
+
+      const SESSIONS_KEY = 'app_sessions';
+      const SESSION_ID_KEY = 'app_current_sessionId';
+      const USER_ID = 'testUser123';
+
+      function log(panelId, message, type = 'info') {
+        const output = document.getElementById(panelId);
+        const div = document.createElement('div');
+        div.className = `output ${type}`;
+        const time = new Date().toLocaleTimeString();
+        div.textContent = `[${time}] ${message}`;
+        output.appendChild(div);
+        output.scrollTop = output.scrollHeight;
+      }
+
+      function generateSessionId() {
+        return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+      }
+
+      // S1 Functions
+      function s1Login() {
+        const sessionId = generateSessionId();
+        s1Storage[SESSION_ID_KEY] = sessionId;
+
+        // Update shared storage
+        const sessions = sharedStorage[SESSIONS_KEY] || {};
+        sessions[USER_ID] = sessions[USER_ID] || [];
+        sessions[USER_ID].push({
+          sessionId,
+          userId: USER_ID,
+          createdAt: new Date().toISOString(),
+          active: true,
+        });
+        sharedStorage[SESSIONS_KEY] = sessions;
+
+        log('s1-output', `✓ S1 Login: Created session ${sessionId.substring(0, 15)}...`, 'success');
+        updateChecklist();
+      }
+
+      function s1Logout() {
+        const sessionId = s1Storage[SESSION_ID_KEY];
+        if (!sessionId) {
+          log('s1-output', '✗ ERROR: No session ID found', 'error');
+          return;
+        }
+
+        const sessions = sharedStorage[SESSIONS_KEY][USER_ID];
+        const index = sessions.findIndex((s) => s.sessionId === sessionId);
+
+        if (index !== -1) {
+          sessions[index].active = false;
+          log('s1-output', `✓ Closed session ${sessionId.substring(0, 15)}...`, 'success');
+        } else {
+          log('s1-output', `✗ Session not found: ${sessionId.substring(0, 15)}...`, 'error');
+        }
+
+        const activeCount = sessions.filter((s) => s.active).length;
+        log('s1-output', `✓ Active sessions remaining: ${activeCount}`, 'success');
+
+        delete s1Storage[SESSION_ID_KEY];
+        log('s1-output', '✓ Cleared S1 sessionStorage', 'success');
+        updateChecklist();
+      }
+
+      function s1Check() {
+        const sessions = sharedStorage[SESSIONS_KEY]?.[USER_ID] || [];
+        log('s1-output', `Sessions: ${sessions.length} total`, 'info');
+        sessions.forEach((s, i) => {
+          const status = s.active ? '✓' : '✗';
+          log('s1-output', `  [${i}] ${s.sessionId.substring(0, 15)}... ${status}`, 'info');
+        });
+      }
+
+      function s1Clear() {
+        s1Storage = {};
+        log('s1-output', '🗑️ S1 Storage cleared', 'warning');
+      }
+
+      // S2 Functions
+      function s2Login() {
+        const sessionId = generateSessionId();
+        s2Storage[SESSION_ID_KEY] = sessionId;
+
+        const sessions = sharedStorage[SESSIONS_KEY] || {};
+        sessions[USER_ID] = sessions[USER_ID] || [];
+        sessions[USER_ID].push({
+          sessionId,
+          userId: USER_ID,
+          createdAt: new Date().toISOString(),
+          active: true,
+        });
+        sharedStorage[SESSIONS_KEY] = sessions;
+
+        log('s2-output', `✓ S2 Login: Created session ${sessionId.substring(0, 15)}...`, 'success');
+        updateChecklist();
+      }
+
+      function s2Logout() {
+        const sessionId = s2Storage[SESSION_ID_KEY];
+        if (!sessionId) {
+          log('s2-output', '✗ ERROR: No session ID found', 'error');
+          return;
+        }
+
+        const sessions = sharedStorage[SESSIONS_KEY][USER_ID];
+        const index = sessions.findIndex((s) => s.sessionId === sessionId);
+
+        if (index !== -1) {
+          sessions[index].active = false;
+          log('s2-output', `✓ Closed session ${sessionId.substring(0, 15)}...`, 'success');
+        } else {
+          log('s2-output', `✗ Session not found: ${sessionId.substring(0, 15)}...`, 'error');
+        }
+
+        const activeCount = sessions.filter((s) => s.active).length;
+        log('s2-output', `✓ Active sessions remaining: ${activeCount}`, 'success');
+
+        delete s2Storage[SESSION_ID_KEY];
+        log('s2-output', '✓ Cleared S2 sessionStorage', 'success');
+        updateChecklist();
+      }
+
+      function s2Check() {
+        const sessions = sharedStorage[SESSIONS_KEY]?.[USER_ID] || [];
+        log('s2-output', `Sessions: ${sessions.length} total`, 'info');
+        sessions.forEach((s, i) => {
+          const status = s.active ? '✓' : '✗';
+          log('s2-output', `  [${i}] ${s.sessionId.substring(0, 15)}... ${status}`, 'info');
+        });
+      }
+
+      function s2Clear() {
+        s2Storage = {};
+        log('s2-output', '🗑️ S2 Storage cleared', 'warning');
+      }
+
+      // Shared Functions
+      function checkShared() {
+        const sessions = sharedStorage[SESSIONS_KEY]?.[USER_ID] || [];
+        const output = document.getElementById('shared-output');
+        output.innerHTML = '';
+
+        log('shared-output', `Total sessions: ${sessions.length}`, 'info');
+        sessions.forEach((s, i) => {
+          const status = s.active ? '✓ ACTIVE' : '✗ INACTIVE';
+          log('shared-output', `[${i}] ${s.sessionId} - ${status}`, s.active ? 'success' : 'error');
+        });
+
+        const activeCount = sessions.filter((s) => s.active).length;
+        log('shared-output', `TOTAL ACTIVE: ${activeCount}`, activeCount > 0 ? 'success' : 'error');
+      }
+
+      function clearAll() {
+        s1Storage = {};
+        s2Storage = {};
+        sharedStorage = {};
+        document.getElementById('s1-output').innerHTML = '';
+        document.getElementById('s2-output').innerHTML = '';
+        document.getElementById('shared-output').innerHTML = '';
+        log('shared-output', '🗑️ All data cleared', 'warning');
+        updateChecklist();
+      }
+
+      function updateChecklist() {
+        const checklist = document.getElementById('checklist');
+        const s1Id = s1Storage[SESSION_ID_KEY] || 'Not set';
+        const s2Id = s2Storage[SESSION_ID_KEY] || 'Not set';
+        const sessions = sharedStorage[SESSIONS_KEY]?.[USER_ID] || [];
+        const activeCount = sessions.filter((s) => s.active).length;
+
+        const checks = [
+          {
+            name: 'S1 has sessionId',
+            passed: !!s1Storage[SESSION_ID_KEY],
+          },
+          {
+            name: 'S2 has sessionId',
+            passed: !!s2Storage[SESSION_ID_KEY],
+          },
+          {
+            name: 'S1 and S2 sessionIds are different',
+            passed:
+              s1Storage[SESSION_ID_KEY] &&
+              s2Storage[SESSION_ID_KEY] &&
+              s1Storage[SESSION_ID_KEY] !== s2Storage[SESSION_ID_KEY],
+          },
+          {
+            name: 'Both sessions in shared storage',
+            passed: sessions.length === 2,
+          },
+          {
+            name: 'After S1 logout, S2 still active',
+            passed: !s1Storage[SESSION_ID_KEY] && s2Storage[SESSION_ID_KEY] && activeCount === 1,
+          },
+        ];
+
+        checklist.innerHTML = checks
+          .map(
+            (check) => `
+          <div class="output ${check.passed ? 'success' : 'error'}">
+            ${check.passed ? '✓' : '✗'} ${check.name}
+          </div>
+        `,
+          )
+          .join('');
+      }
+
+      // Initialize
+      updateChecklist();
+    </script>
+  </body>
+</html>

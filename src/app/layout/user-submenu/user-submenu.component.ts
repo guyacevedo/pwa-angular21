@@ -196,16 +196,10 @@ export class UserSubmenuComponent {
       })
       .subscribe(async (result) => {
         if (result) {
-          try {
-            // Logout first to update auth state
-            await this.authFacade.logout();
-            // Then navigate to login (guard will redirect if user is null)
-            await this.router.navigate(['/auth/login'], { replaceUrl: true });
-          } catch (error) {
-            console.error('Logout error:', error);
-            // Fallback: navigate to login anyway
-            this.router.navigate(['/auth/login'], { replaceUrl: true });
-          }
+          // Logout will set isLoggingOut signal, showing splash
+          await this.authFacade.logout();
+          // Navigate after logout completes
+          await this.router.navigate(['/auth/login'], { replaceUrl: true });
         }
       });
   }

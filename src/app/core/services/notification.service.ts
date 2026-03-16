@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, addDoc } from '@angular/fire/firestore';
+import { UserStatus } from '../types/user-status.type';
 
 export interface AuthNotification {
   userId: string;
@@ -7,6 +8,8 @@ export interface AuthNotification {
   userEmail: string;
   action: 'LOGIN' | 'LOGOUT';
   timestamp: Date;
+  newStatus: UserStatus;
+  previousStatus?: UserStatus;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -23,7 +26,7 @@ export class NotificationService {
     email: string;
   }): Promise<void> {
     try {
-      // Write notification to Firestore for all users with permissions
+      // Write notification to Firestore for FCM server to process
       await addDoc(collection(this.firestore, 'notifications'), {
         title: 'Usuario conectado',
         body: `${userData.firstName} ${userData.lastName} se ha conectado.`,
@@ -31,8 +34,11 @@ export class NotificationService {
         userId: userData.id,
         userName: `${userData.firstName} ${userData.lastName}`,
         userEmail: userData.email,
+        newStatus: 'ACTIVE',
+        previousStatus: 'INACTIVE',
         timestamp: new Date(),
         read: false,
+        sent: false, // FCM server will process and set to true
       });
     } catch (error) {
       console.error('Error sending login notification:', error);
@@ -49,7 +55,7 @@ export class NotificationService {
     email: string;
   }): Promise<void> {
     try {
-      // Write notification to Firestore for all users with permissions
+      // Write notification to Firestore for FCM server to process
       await addDoc(collection(this.firestore, 'notifications'), {
         title: 'Usuario desconectado',
         body: `${userData.firstName} ${userData.lastName} se ha desconectado.`,
@@ -57,8 +63,11 @@ export class NotificationService {
         userId: userData.id,
         userName: `${userData.firstName} ${userData.lastName}`,
         userEmail: userData.email,
+        newStatus: 'INACTIVE',
+        previousStatus: 'ACTIVE',
         timestamp: new Date(),
         read: false,
+        sent: false, // FCM server will process and set to true
       });
     } catch (error) {
       console.error('Error sending logout notification:', error);

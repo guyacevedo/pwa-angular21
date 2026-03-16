@@ -18,14 +18,14 @@ import { AuthFacade } from '../features/auth/auth.facade';
   selector: 'app-main-layout',
   imports: [RouterOutlet, SidebarComponent, HeaderComponent, FooterComponent],
   template: `
-    @if (!authFacade.authReady()) {
-      <div class="flex h-screen w-full items-center justify-center bg-slate-50 dark:bg-slate-900">
+    @if (!authFacade.authReady() || authFacade.isLoggingOut()) {
+      <div class="flex h-dvh w-full items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div
           class="animate-spin size-8 border-4 border-primary border-t-transparent rounded-full"
         ></div>
       </div>
     } @else {
-      <div class="flex h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-900">
+      <div class="flex h-dvh w-full overflow-hidden bg-slate-50 dark:bg-slate-900">
         <!-- Sidebar for Desktop -->
         @if (isSplitPaneVisible()) {
           <aside
@@ -84,7 +84,7 @@ import { AuthFacade } from '../features/auth/auth.facade';
     }
   `,
   host: {
-    class: 'block h-full w-full',
+    class: 'block h-full w-full overflow-hidden',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
