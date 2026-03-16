@@ -41,33 +41,41 @@ function startListeningToNotifications() {
   console.log('[FCM Server] Setting up Firestore listener...');
 
   const query = db.collection('notifications').where('sent', '==', false);
+  const processing = new Set();
 
   const unsubscribe = query.onSnapshot(
     async (snapshot) => {
       console.log(`[FCM Server] Found ${snapshot.docs.length} unsent notifications`);
 
       for (const doc of snapshot.docs) {
+        if (processing.has(doc.id)) {
+          console.log(`[FCM Server] Skipping ${doc.id} - already processing`);
+          continue;
+        }
+        processing.add(doc.id);
+
         const notification = doc.data();
         console.log(`[FCM Server] Processing notification: ${doc.id}`);
 
         try {
           // Send to all admin users with FCM tokens
+          // Note: We query only by role to avoid needing a composite index
           const usersSnapshot = await db
             .collection('users')
             .where('role', '==', 'ADMIN')
-            .where('fcmToken', '!=', null)
             .get();
 
-          console.log(`[FCM Server] Found ${usersSnapshot.docs.length} admin users with FCM tokens`);
+          // Filter locally for users with FCM tokens
+          const adminUsersWithTokens = usersSnapshot.docs.filter((doc) => {
+            const user = doc.data();
+            return user.fcmToken && typeof user.fcmToken === 'string' && user.fcmToken.length > 0;
+          });
 
-          for (const userDoc of usersSnapshot.docs) {
+          console.log(`[FCM Server] Found ${adminUsersWithTokens.length} admin users with FCM tokens`);
+
+          for (const userDoc of adminUsersWithTokens) {
             const user = userDoc.data();
             const fcmToken = user.fcmToken;
-
-            if (!fcmToken) {
-              console.log(`[FCM Server] No FCM token for user ${user.id}`);
-              continue;
-            }
 
             try {
               const messageId = await messaging.send({
@@ -75,14 +83,18 @@ function startListeningToNotifications() {
                 notification: {
                   title: notification.title || 'Nueva Notificación',
                   body: notification.body || '',
-                  imageUrl: notification.image || undefined,
                 },
-                data: notification.data || {},
+                data: {
+                  ...(notification.data || {}),
+                  title: notification.title || 'Nueva Notificación',
+                  body: notification.body || '',
+                },
                 android: {
                   priority: 'high',
                   notification: {
                     sound: 'default',
                     clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+                    icon: 'ic_notification',
                   },
                 },
                 apns: {
@@ -98,13 +110,23 @@ function startListeningToNotifications() {
                 },
                 webpush: {
                   notification: {
+                    title: notification.title || 'Nueva Notificación',
+                    body: notification.body || '',
                     icon: '/favicon.ico',
                     badge: '/favicon.ico',
+                    tag: 'app-notification',
+                    requireInteraction: false,
+                  },
+                  data: {
+                    ...(notification.data || {}),
+                    title: notification.title || 'Nueva Notificación',
+                    body: notification.body || '',
                   },
                 },
               });
 
               console.log(`[FCM Server] Message sent to ${user.id}: ${messageId}`);
+              console.log(`[FCM Server] Notification: "${notification.title}" - "${notification.body}"`);
             } catch (error) {
               console.error(`[FCM Server] Error sending to ${user.id}:`, error.message);
             }
@@ -114,12 +136,14 @@ function startListeningToNotifications() {
           await doc.ref.update({
             sent: true,
             sentAt: admin.firestore.FieldValue.serverTimestamp(),
-            sentToUsers: usersSnapshot.docs.length,
+            sentToUsers: adminUsersWithTokens.length,
           });
 
           console.log(`[FCM Server] Notification ${doc.id} marked as sent`);
         } catch (error) {
           console.error(`[FCM Server] Error processing notification ${doc.id}:`, error);
+        } finally {
+          processing.delete(doc.id);
         }
       }
     },

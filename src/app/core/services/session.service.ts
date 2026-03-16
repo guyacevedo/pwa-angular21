@@ -1,4 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import {
+  Firestore,
+  collection,
+  doc,
+  setDoc,
+  updateDoc,
+  query,
+  where,
+  getDocs,
+} from '@angular/fire/firestore';
 
 export interface Session {
   sessionId: string;
@@ -11,102 +21,64 @@ export interface Session {
   providedIn: 'root',
 })
 export class SessionService {
-  private readonly SESSIONS_STORAGE_KEY = 'app_sessions';
-
-  constructor() {
-    // Listen for storage changes from other tabs
-    window.addEventListener('storage', (e) => {
-      if (e.key === this.SESSIONS_STORAGE_KEY) {
-        console.log('[SessionService] Sessions updated from another tab');
-      }
-    });
-  }
+  private readonly CURRENT_SESSION_KEY = 'app_current_sessionId';
+  private firestore = inject(Firestore);
 
   /**
-   * Create a new session for a user
+   * Creates a session for the current browser in Firestore
    */
   async createSession(userId: string): Promise<string> {
     const sessionId = this.generateSessionId();
+    sessionStorage.setItem(this.CURRENT_SESSION_KEY, sessionId);
 
-    const sessions = this.getAllSessions();
-    const userSessions = sessions[userId] || [];
-
-    const session: Session = {
+    const sessionRef = doc(collection(this.firestore, 'sessions'), sessionId);
+    await setDoc(sessionRef, {
       sessionId,
       userId,
       createdAt: new Date().toISOString(),
       active: true,
-    };
+    });
 
-    userSessions.push(session);
-    sessions[userId] = userSessions;
-
-    localStorage.setItem(this.SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
-    sessionStorage.setItem('app_current_sessionId', sessionId);
-
-    console.log(`[SessionService] Created session ${sessionId} for user ${userId}`);
     return sessionId;
   }
 
   /**
-   * Close a specific session
+   * Marks current session as inactive in Firestore
    */
-  async closeSession(userId: string, sessionId: string): Promise<void> {
-    const sessions = this.getAllSessions();
-    const userSessions = sessions[userId] || [];
-
-    const sessionIndex = userSessions.findIndex((s) => s.sessionId === sessionId);
-    if (sessionIndex !== -1) {
-      userSessions[sessionIndex].active = false;
-      sessions[userId] = userSessions;
-      localStorage.setItem(this.SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
-      console.log(`[SessionService] Closed session ${sessionId} for user ${userId}`);
+  async closeSession(_userId: string, sessionId: string): Promise<void> {
+    try {
+      const sessionRef = doc(this.firestore, 'sessions', sessionId);
+      await updateDoc(sessionRef, { active: false });
+    } catch (e) {
+      console.error('[SessionService] Error closing session:', e);
+    } finally {
+      sessionStorage.removeItem(this.CURRENT_SESSION_KEY);
     }
-
-    sessionStorage.removeItem('app_current_sessionId');
   }
 
   /**
-   * Check if user has active sessions
-   * Always reads from localStorage to get latest state from other tabs
+   * Checks Firestore for any other active sessions for this user.
+   * Works across different browsers since Firestore is the shared source of truth.
    */
   async hasActiveSessions(userId: string): Promise<boolean> {
-    // Force read from localStorage (not cached)
-    const stored = localStorage.getItem(this.SESSIONS_STORAGE_KEY);
-    const sessions = stored ? JSON.parse(stored) : {};
-    const userSessions = (sessions[userId] || []) as Session[];
-
-    console.log(
-      `[SessionService] All sessions for ${userId}:`,
-      userSessions.map((s) => ({ id: s.sessionId.substring(0, 10), active: s.active })),
-    );
-
-    const activeCount = userSessions.filter((s: Session) => s.active).length;
-
-    console.log(
-      `[SessionService] User ${userId} has ${activeCount} active sessions (${userSessions.length} total)`,
-    );
-    return activeCount > 0;
+    try {
+      const q = query(
+        collection(this.firestore, 'sessions'),
+        where('userId', '==', userId),
+        where('active', '==', true),
+      );
+      const snapshot = await getDocs(q);
+      return !snapshot.empty;
+    } catch (e) {
+      console.error('[SessionService] Error checking active sessions:', e);
+      return false;
+    }
   }
 
-  /**
-   * Get current session ID from sessionStorage (tab-specific)
-   */
   getCurrentSessionId(): string | null {
-    return sessionStorage.getItem('app_current_sessionId');
+    return sessionStorage.getItem(this.CURRENT_SESSION_KEY);
   }
 
-  /**
-   * Get all sessions from localStorage
-   */
-  private getAllSessions(): Record<string, Session[]> {
-    const stored = localStorage.getItem(this.SESSIONS_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : {};
-  }
-
-  /**
-   * Generate a unique session ID
-   */
   private generateSessionId(): string {
     return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   }

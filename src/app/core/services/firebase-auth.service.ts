@@ -15,7 +15,8 @@ import { AuthRepository } from '../../core/interfaces/auth.repository';
 import { User } from '../../core/models';
 import { FirebaseUserService } from './firebase-user.service';
 import { NotificationService } from './notification.service';
-import { FcmService } from './fcm.service';
+
+import { SessionService } from './session.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
 
@@ -27,7 +28,8 @@ export class FirebaseAuthService implements AuthRepository {
   private userService = inject(FirebaseUserService);
   private firestore = inject(Firestore);
   private notificationService = inject(NotificationService);
-  private fcmService = inject(FcmService);
+
+  private sessionService = inject(SessionService);
 
   private readonly _authReady = signal(false);
   public readonly authReady = this._authReady.asReadonly();
@@ -112,11 +114,11 @@ export class FirebaseAuthService implements AuthRepository {
     // Update user lastLogin and status to ACTIVE after login
     const currentUser = this.auth.currentUser;
     if (currentUser) {
+      // Create a new session for this login
+      this.sessionService.createSession(currentUser.uid);
+
       // Get user data for notification
       const userData = await this.userService.getUserByUId(currentUser.uid);
-
-      // Save FCM token for push notifications (non-blocking)
-      this.fcmService.saveFcmToken(currentUser.uid);
 
       await this.userService.updateUser({
         id: currentUser.uid,
@@ -140,26 +142,46 @@ export class FirebaseAuthService implements AuthRepository {
   }
 
   async logout(): Promise<void> {
-    // Update user lastLogout and status to INACTIVE before logout
+    // Close current session and check if user has other active sessions
     const currentUser = this.auth.currentUser;
     if (currentUser) {
+      const sessionId = this.sessionService.getCurrentSessionId();
+
       // Get user data for notification
       const userData = await this.userService.getUserByUId(currentUser.uid);
 
-      await this.userService.updateUser({
-        id: currentUser.uid,
-        lastLogout: new Date(),
-        status: 'INACTIVE',
-      });
+      // First, close the current session
+      if (sessionId) {
+        await this.sessionService.closeSession(currentUser.uid, sessionId);
+      }
 
-      // Send logout notification to users with permissions
-      if (userData) {
-        await this.notificationService.notifyLogout({
-          id: userData.id,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          email: userData.email,
+      // Then check if user has OTHER active sessions (besides the one we just closed)
+      // This uses BroadcastChannel ping/pong to detect other active tabs in real time
+      const hasOtherSessions = await this.sessionService.hasActiveSessions(currentUser.uid);
+
+      console.log(`[Auth] User ${currentUser.uid} has other sessions: ${hasOtherSessions}`);
+
+      // Only mark as INACTIVE if no other sessions are active
+      if (!hasOtherSessions) {
+        await this.userService.updateUser({
+          id: currentUser.uid,
+          lastLogout: new Date(),
+          status: 'INACTIVE',
         });
+
+        // Send logout notification only if completely logged out
+        if (userData) {
+          await this.notificationService.notifyLogout({
+            id: userData.id,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            email: userData.email,
+          });
+        }
+      } else {
+        console.log(
+          `[Auth] User ${currentUser.uid} still has active sessions, keeping ACTIVE status`,
+        );
       }
     }
     await signOut(this.auth);
