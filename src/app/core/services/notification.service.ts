@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, addDoc } from '@angular/fire/firestore';
 import { UserStatus } from '../types/user-status.type';
-import { PushNotificationService } from './push-notification.service';
 
 export interface AuthNotification {
   userId: string;
@@ -16,7 +15,6 @@ export interface AuthNotification {
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
   private firestore = inject(Firestore);
-  private pushNotificationService = inject(PushNotificationService);
 
   /**
    * Send login notification to users with canViewUsers permission
@@ -28,7 +26,7 @@ export class NotificationService {
     email: string;
   }): Promise<void> {
     try {
-      // Write notification to Firestore for audit
+      // Write notification to Firestore for FCM server to process
       await addDoc(collection(this.firestore, 'notifications'), {
         title: 'Usuario conectado',
         body: `${userData.firstName} ${userData.lastName} se ha conectado.`,
@@ -40,14 +38,8 @@ export class NotificationService {
         previousStatus: 'INACTIVE',
         timestamp: new Date(),
         read: false,
+        sent: false, // FCM server will process and set to true
       });
-
-      // Send push notification to admins
-      await this.pushNotificationService.sendPushNotificationToAdmins(
-        'Usuario conectado',
-        `${userData.firstName} ${userData.lastName} se ha conectado.`,
-        { userId: userData.id, action: 'LOGIN' },
-      );
     } catch (error) {
       console.error('Error sending login notification:', error);
     }
@@ -63,7 +55,7 @@ export class NotificationService {
     email: string;
   }): Promise<void> {
     try {
-      // Write notification to Firestore for audit
+      // Write notification to Firestore for FCM server to process
       await addDoc(collection(this.firestore, 'notifications'), {
         title: 'Usuario desconectado',
         body: `${userData.firstName} ${userData.lastName} se ha desconectado.`,
@@ -75,14 +67,8 @@ export class NotificationService {
         previousStatus: 'ACTIVE',
         timestamp: new Date(),
         read: false,
+        sent: false, // FCM server will process and set to true
       });
-
-      // Send push notification to admins
-      await this.pushNotificationService.sendPushNotificationToAdmins(
-        'Usuario desconectado',
-        `${userData.firstName} ${userData.lastName} se ha desconectado.`,
-        { userId: userData.id, action: 'LOGOUT' },
-      );
     } catch (error) {
       console.error('Error sending logout notification:', error);
     }

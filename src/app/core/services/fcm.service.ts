@@ -14,8 +14,7 @@ export class FcmService {
   private async getToken(): Promise<string | null> {
     try {
       const token = await getToken(this.messaging, {
-        vapidKey:
-          'BHVq1mPKKzA1jcUdKyxYKnYTfXRqR9zGnR8WnGKF2eJvWKQxD8gJqPp3QnJWzaYPkVkLnGqXqL9MqVpGKZv7vxU',
+        vapidKey: 'dZfZQDI5yY4xUzGXCOvp4assfV95eSHpyHrdjsWNdvc',
       });
 
       console.log('[FcmService] Token obtained:', token);
