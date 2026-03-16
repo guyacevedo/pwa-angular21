@@ -18,7 +18,7 @@ const ROUTE_TITLES: Record<string, string> = {
   imports: [UserSubmenuComponent, SvgIconComponent],
   template: `
     <header
-      class="flex-none z-40 bg-neymar-blue dark:bg-slate-950 text-white shadow-md border-b border-white/10 safe-area-top"
+      class="flex-none z-40 bg-brand-blue dark:bg-slate-950 text-white shadow-md border-b border-white/10 safe-area-top"
     >
       <div class="flex items-center justify-between px-4 h-14 gap-3">
         <!-- Izquierda: hamburger (mobile) o título de página (desktop) -->
