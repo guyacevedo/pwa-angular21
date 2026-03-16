@@ -15,7 +15,6 @@ import { AuthRepository } from '../../core/interfaces/auth.repository';
 import { User } from '../../core/models';
 import { FirebaseUserService } from './firebase-user.service';
 import { NotificationService } from './notification.service';
-import { FcmService } from './fcm.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
 
@@ -27,7 +26,6 @@ export class FirebaseAuthService implements AuthRepository {
   private userService = inject(FirebaseUserService);
   private firestore = inject(Firestore);
   private notificationService = inject(NotificationService);
-  private fcmService = inject(FcmService);
 
   private readonly _authReady = signal(false);
   public readonly authReady = this._authReady.asReadonly();
@@ -131,9 +129,6 @@ export class FirebaseAuthService implements AuthRepository {
         });
       }
 
-      // Initialize FCM for this user
-      await this.fcmService.initializeMessaging();
-
       // Small delay to ensure Firestore has persisted the update before user$ observable re-reads
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
@@ -161,9 +156,6 @@ export class FirebaseAuthService implements AuthRepository {
           email: userData.email,
         });
       }
-
-      // Clear FCM token
-      await this.fcmService.clearFcmToken();
     }
     await signOut(this.auth);
   }
