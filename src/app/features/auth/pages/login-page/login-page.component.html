@@ -1,15 +1,14 @@
-<main class="h-full w-full overflow-y-auto relative bg-slate-50 dark:bg-slate-900">
+<main class="min-h-screen w-full flex flex-col relative bg-slate-50 dark:bg-slate-900">
   <div
-    class="w-full py-2.5 font-medium text-sm text-white text-center bg-linear-to-r from-blue-500 via-blue-600 to-blue-500">
-    <p>Portal de gestión operativa y comercial. &copy; {{ currentYear }}</p>
+    class="w-full py-2.5 font-medium text-sm text-white text-center bg-linear-to-r from-blue-500 via-blue-600 to-blue-500"
+  >
+    <p>PWA Angular 21 Application. &copy; {{ currentYear }}</p>
   </div>
-  <div
-    class="mx-auto max-w-7xl flex flex-col items-center justify-center pt-2 pb-10">
-      <!-- Brand Component -->
-      <div class="pt-6 pb-4 w-full flex justify-center">
-        <app-brand [isSmall]="false"></app-brand>
-      </div>
-
+  <div class="flex-1 mx-auto w-full max-w-7xl flex flex-col items-center justify-center pt-2 pb-10">
+    <!-- Brand Component -->
+    <div class="pt-6 pb-4 w-full flex justify-center">
+      <app-brand [isSmall]="false"></app-brand>
+    </div>
 
     <!-- Right Column: Login Form -->
     <div class="w-full flex flex-col items-center justify-center px-4">
@@ -18,20 +17,26 @@
       </div>
 
       <!-- Footer Security Notice -->
-            
+
       <div class="max-w-md w-full py-4 mt-4">
         <div
-          class="bg-blue-50 dark:bg-slate-800/60 rounded-2xl px-4 py-4 shadow-sm border border-blue-100 dark:border-slate-800">
+          class="bg-blue-50 dark:bg-slate-800/60 rounded-2xl px-4 py-4 shadow-sm border border-blue-100 dark:border-slate-800"
+        >
           <p class="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
             <span class="text-[11px] flex items-center gap-4 text-left">
-              <app-svg-icon icon="verified" size="48px" class="shrink-0 text-blue-600 dark:text-blue-400"></app-svg-icon>
-              <span>El acceso a esta plataforma está estrictamente reservado para personal autorizado por la
-                administración de <span class="text-blue-700 dark:text-blue-400 font-bold">Comercializadora Neymar</span></span>
+              <app-svg-icon
+                icon="verified"
+                size="48px"
+                class="shrink-0 text-blue-600 dark:text-blue-400"
+              ></app-svg-icon>
+              <span
+                >El acceso a esta plataforma está estrictamente reservado para personal
+                autorizado.</span
+              >
             </span>
           </p>
         </div>
       </div>
     </div>
-
   </div>
 </main>

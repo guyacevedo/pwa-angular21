@@ -29,71 +29,66 @@ export class PdfService {
     const textX = logoX + 60; // pegado
     let currentY = logoY + 15;
 
-    // "NEYMAR" grande — referencia base de ancho
+    // Brand name large — reference width
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(28);
-    const neymarText = 'NEYMAR';
-    const neymarW = doc.getTextWidth(neymarText); // ancho real en mm
+    const brandText = 'MY COMPANY';
+    const brandW = doc.getTextWidth(brandText);
 
-    // "COMERCIALIZADORA" escalada para ocupar exactamente el ancho de NEYMAR
-    const comercText = 'COMERCIALIZADORA';
-    doc.setFontSize(16); // medir primero en tamaño base
-    const comercBaseW = doc.getTextWidth(comercText);
-    const comercFontSize = Math.floor((neymarW / comercBaseW) * 16 * 10) / 10;
+    // "COMPANY" scaled to match brand text width
+    const headerText = 'COMPANY';
+    doc.setFontSize(16);
+    const headerBaseW = doc.getTextWidth(headerText);
+    const headerFontSize = Math.floor((brandW / headerBaseW) * 16 * 10) / 10;
 
-    // Dibujar "COMERCIALIZADORA" escalada
-    doc.setFontSize(comercFontSize);
+    // Draw header
+    doc.setFontSize(headerFontSize);
     doc.setTextColor(...this.BRAND_BLUE);
-    doc.text(comercText, textX, currentY);
+    doc.text(headerText, textX, currentY);
 
-    // Dibujar "NEYMAR"
+    // Draw brand name
     currentY += 8.5;
     doc.setFontSize(28);
-    doc.text(neymarText, textX, currentY);
+    doc.text(brandText, textX, currentY);
 
-    // "Pesca & Distribución" centrado bajo Neymar y en color #b45309 (oro marca)
+    // Tagline
     currentY += 4.5;
-    const pescaText = 'Pesca & Distribución';
+    const taglineText = 'Brand Tagline';
     doc.setFontSize(10);
     doc.setTextColor(...this.BRAND_GOLD);
-    const pescaW = doc.getTextWidth(pescaText);
-    const pescaX = textX + (neymarW - pescaW) / 2; // Centrado exacto
-    doc.text(pescaText, pescaX, currentY);
+    const taglineW = doc.getTextWidth(taglineText);
+    const taglineX = textX + (brandW - taglineW) / 2;
+    doc.text(taglineText, taglineX, currentY);
 
-    // ── Línea con curva lisa (elipse) y Slogan dorado ──
+    // Decorative line and motto
     const lineY = currentY + 2.5;
-
-    const slogan = 'Del río a su mesa, frescura que se nota.';
+    const motto = 'Your company motto here.';
     doc.setFontSize(9);
     doc.setFont('helvetica', 'italic');
-    const sloganW = doc.getTextWidth(slogan);
+    const mottoW = doc.getTextWidth(motto);
 
-    // Centramos línea y lema basados en el mayor ancho
-    const lineW = Math.max(neymarW, sloganW + 4);
-    const centerX = textX + neymarW / 2;
+    const lineW = Math.max(brandW, mottoW + 4);
+    const centerX = textX + brandW / 2;
 
-    // Línea gruesa en el centro y afilada en las puntas (dibujada como elipse fina en y)
     doc.setFillColor(...this.BRAND_BLUE);
     doc.ellipse(centerX, lineY, lineW / 2, 0.45, 'F');
 
-    // Slogan en cursiva bajo la línea, también dorado y centrado
-    const sloganY = lineY + 5.5;
-    const sloganX = centerX - sloganW / 2; // Centrado exacto
-    // "Del río a su mesa... tambien debe ser dorado"
+    const mottoY = lineY + 5.5;
+    const mottoX = centerX - mottoW / 2;
     doc.setTextColor(...this.BRAND_BLUE);
-    doc.text(slogan, sloganX, sloganY);
+    doc.text(motto, mottoX, mottoY);
 
-    // ── Datos de contacto (columna derecha) ──
+    // Contact information (right column)
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.setTextColor(51, 65, 85); // Slate slate para visibilidad sobre blanco
+    doc.setTextColor(51, 65, 85);
     const empresa = config;
     const contactLines = [
-      empresa?.nombre || 'Comercializadora Neymar',
+      empresa?.nombre || 'Company Name',
       empresa?.nit ? `NIT: ${empresa.nit}` : 'NIT: —',
-      empresa?.direccion || 'Avenida la Candelaria, Cra. 3 #20-29, Magangué',
+      empresa?.direccion || 'Company Address',
       empresa?.telefono || '',
-      empresa?.email || 'contacto@comercializadora-neymar.com',
+      empresa?.email || 'contact@example.com',
     ].filter(Boolean);
 
     let lineContactY = 16;
@@ -102,7 +97,7 @@ export class PdfService {
       lineContactY += 4.5;
     }
 
-    return sloganY + 8; // Y de inicio del contenido
+    return mottoY + 8;
   }
 
   // ────── Footer universal ──────
@@ -119,14 +114,14 @@ export class PdfService {
     doc.setTextColor(100, 100, 100);
     const pie =
       config?.pieDePaginaFactura ||
-      'Cámara de Comercio Magangué · Matrícula 44760 · Comercio al por mayor y menor de pescados\nEsta factura se asimila en todos sus efectos a una letra de cambio (Art. 774 del Código de Comercio).';
+      'Thank you for your business.\nThis document is equivalent to a bill of exchange (Article 774 of the Commercial Code).';
 
     // Split text to handle multiple lines
     const pieLines = doc.splitTextToSize(pie, pageW - 28);
     const pieY = pieLines.length > 2 ? pageH - 14 : pageH - 12;
     doc.text(pieLines, 14, pieY);
 
-    doc.text(`Página ${pageNum}`, pageW - 14, pageH - 7, { align: 'right' });
+    doc.text(`Page ${pageNum}`, pageW - 14, pageH - 7, { align: 'right' });
   }
 
   // ────── Sección de badge de estado ──────
@@ -388,7 +383,7 @@ export class PdfService {
   private drawCenteredText(doc: jsPDF, text: string, x: number, y: number, maxWidth: number): void {
     const lines = doc.splitTextToSize(text, maxWidth);
     lines.forEach((line: string, index: number) => {
-      doc.text(line, x, y + (index * 3), { align: 'center' });
+      doc.text(line, x, y + index * 3, { align: 'center' });
     });
   }
 }
