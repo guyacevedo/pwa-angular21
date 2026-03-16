@@ -91,7 +91,7 @@ jobs:
     name: Build and Deploy to Firebase
     runs-on: ubuntu-latest
     needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && github.actor != 'dependabot[bot]'
 
     steps:
       - name: Checkout code
@@ -108,8 +108,10 @@ jobs:
 
       - name: Validate required secrets
         run: |
-          [ -z "${{ secrets.FIREBASE_PROJECT_ID }}" ] && echo "❌ Missing FIREBASE_PROJECT_ID" && exit 1
-          [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ] && echo "❌ Missing FIREBASE_SERVICE_ACCOUNT" && exit 1
+          if [ -z "${{ secrets.FIREBASE_PROJECT_ID }}" ] || [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+            echo "⚠️ Skipping Firebase deployment: required secrets not configured"
+            exit 0
+          fi
           echo "✅ All required secrets are present"
 
       - name: Create environment files for deployment
