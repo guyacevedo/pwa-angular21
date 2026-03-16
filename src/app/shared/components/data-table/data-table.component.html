@@ -1,0 +1,193 @@
+<div #tableTop
+    class="relative border border-white/20 group/table scroll-mt-48"
+    id="data-table-container">
+    @if (loading()) {
+    <div class="flex flex-col justify-center items-center w-full min-h-60 rounded-4xl overflow-hidden">
+        <div class="animate-spin inline-block size-10 border-4 border-t-transparent text-primary rounded-full"
+            role="status" aria-label="loading"></div>
+        <span class="text-center font-medium text-2xl mt-4 text-slate-700 dark:text-slate-300">Cargando datos...</span>
+    </div>
+    } @else if (error()) {
+    <div class="flex flex-col justify-center items-center w-full h-58 rounded-4xl overflow-hidden">
+        <app-svg-icon icon="error" size="82px" class="text-red-500"></app-svg-icon>
+        <p class="text-center font-medium text-xl text-red-500 mt-4">Hubo un error al cargar los datos.</p>
+        <p class="text-sm text-slate-500 mt-2">{{ error() }}</p>
+        <button (click)="retryClick.emit()"
+            class="cursor-pointer underline underline-offset-1 mt-7 text-primary hover:text-primary/80 transition-colors">
+            Reintentar
+        </button>
+    </div>
+    } @else {
+    <div class="w-full pb-4">
+        <!-- Horizontal Scroll Container for Mobile -->
+        <div class="w-full">
+            <!-- Table Header (Desktop Only) -->
+            <div class="grid sticky top-0! z-50 py-2 lg:py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-200/95 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-extrabold select-none text-xs lg:text-sm tracking-wider transition-all shadow-sm"
+                [style.grid-template-columns]="'repeat(' + totalColumns() + ', minmax(0, 1fr))'">
+
+                    @for (col of columns(); track col.key) {
+                    <div (click)="applySort(col.key)" (keydown.enter)="applySort(col.key)"
+                        (keydown.space)="applySort(col.key)" [attr.tabindex]="col.sortable ? 0 : null"
+                        [attr.role]="col.sortable ? 'button' : null" [style.grid-column]="'span ' + (col.colSpan || 1)"
+                        class="flex items-center gap-1 transition px-1" [class.cursor-pointer]="col.sortable"
+                        [class.hover:text-primary]="col.sortable" [ngClass]="{
+                        'justify-start': col.align !== 'right' && col.align !== 'center',
+                        'justify-center': col.align === 'center',
+                        'justify-end': col.align === 'right'
+                    }">
+                        <span class="truncate">{{ col.label }}</span>
+                        @if (col.sortable && sortConfig().key === col.key && sortConfig().direction !== 'none') {
+                        <app-svg-icon [icon]="sortConfig().direction === 'asc' ? 'arrowDropUp' : 'arrowDropDown'"
+                            size="20px"></app-svg-icon>
+                        }
+                    </div>
+                    }
+                    <!-- Action Header -->
+                    @if (isActionColumnVisible()) {
+                    <div class="text-center">{{ actionLabel() }}</div>
+                    }
+                </div>
+
+                <!-- Table Body -->
+                <div class="min-h-[140px]">
+                    @for (item of displayedData(); track item.id || $index) {
+                    <div (dblclick)="handleInteraction(item, $event)" 
+                        (touchstart)="onTouchStart($event)"
+                        (touchend)="handleInteraction(item, $event)"
+                        (keydown.enter)="onRowClick(item)" 
+                        (keydown.space)="onRowClick(item)" 
+                        [attr.tabindex]="actionTrigger() === 'row' ? 0 : null" 
+                        [attr.role]="actionTrigger() === 'row' ? 'button' : null"
+                        class="grid grid-cols-none items-center py-4 lg:py-2 px-0 border-b border-slate-100 dark:border-slate-900 even:bg-slate-50/50 dark:even:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition overflow-hidden text-xs md:text-sm text-slate-700 dark:text-slate-300"
+                        [class.cursor-pointer]="actionTrigger() === 'row'"
+                        [style.grid-template-columns]="'repeat(' + totalColumns() + ', minmax(0, 1fr))'" >
+
+                        @for (col of columns(); track col.key) {
+                        <div class="px-1" [style.grid-column]="'span ' + (col.colSpan || 1)" [ngClass]="{
+                        'lg:text-left text-left': col.align !== 'right' && col.align !== 'center',
+                        'lg:text-center text-center': col.align === 'center',
+                        'lg:text-right text-right': col.align === 'right'
+                    }">
+
+                            <!-- Column Value Formatting Strategy -->
+                            <div class="flex items-center gap-1"
+                                [ngClass]="[col.align === 'right' ? 'justify-end' : col.align === 'center' ? 'justify-center' : 'justify-start', col.classFunction ? (col.classFunction(item) || '') : '']">
+                                @if (col.iconFunction && col.iconFunction(item)) {
+                                <app-svg-icon [icon]="col.iconFunction(item)!" size="14px"></app-svg-icon>
+                                }
+                                @switch (col.type) {
+                                @case ('currency') {
+                                @if ($any(getNestedValue(item, col.key)) === 0) {
+                                –
+                                } @else {
+                                <span class="font-medium">{{ $any(getNestedValue(item, col.key)) | formatCurrency
+                                    }}</span>
+                                }
+                                }
+                                @case ('date') {
+                                {{ $any(getNestedValue(item, col.key)) | date: 'dd/MM/yyyy' }}
+                                }
+                                @case ('badge') {
+                                <span
+                                    class="rounded-full w-max truncate text-center md:text-[10px] font-bold tracking-wider border whitespace-nowrap"
+                                    [ngClass]="[col.badgeColorFunction ? col.badgeColorFunction(item) : 'bg-slate-100 text-slate-600 border-slate-200', hiddenTextBadgeMob() ? 'px-1 md:px-2 py-1 md:py-0.5 text-[0px]': 'px-2 py-0.5 text-[10px]']"
+                                    [ngClass]="">
+                                    {{ col.badgeTextFunction ? col.badgeTextFunction(item) : getNestedValue(item,
+                                    col.key) }}
+                                </span>
+                                }
+                                @default {
+                                <span class="truncate block text-xs lg:text-sm font-semibold">
+                                    {{ col.customFormat ? col.customFormat(item) : (getNestedValue(item, col.key) ??
+                                    '–') }}
+                                </span>
+                                }
+                                }
+                            </div>
+                        </div>
+                        }
+
+                        <!-- Action Cell -->
+                        @if (isActionColumnVisible()) {
+                        <div class="text-center border-none flex justify-center w-full">
+                            <button (click)="onActionBtnClick(item, $event)"
+                                class="text-primary hover:text-primary/80 text-xs transition-colors hover:underline inline-flex items-center gap-1 font-medium bg-transparent border-none"
+                                [class.cursor-pointer]="actionTrigger() === 'button'"
+                                [disabled]="actionTrigger() !== 'button'"
+                                [class.opacity-50]="actionTrigger() !== 'button'">
+                                <span class="hidden lg:block">{{ actionText() }}</span>
+                                <app-svg-icon [icon]="actionIcon()" size="20px"></app-svg-icon>
+                            </button>
+                        </div>
+                        }
+                    </div>
+                    } @empty {
+                    <div class="flex flex-col items-center w-full min-h-[349px] lg:min-h-[274px]">
+                        <app-svg-icon [icon]="emptyIcon()" size="82px" class="text-slate-400 opacity-50"></app-svg-icon>
+                        <p class="text-center font-medium text-sm lg:text-base text-slate-600 dark:text-slate-400">{{
+                            emptyMessage() }}
+                        </p>
+                        <button (click)="retryClick.emit()"
+                            class="cursor-pointer underline underline-offset-1 mt-4 text-primary hover:text-primary/80 transition-colors">
+                            Volver a cargar
+                        </button>
+                    </div>
+                    }
+                </div>
+    </div>
+
+        @if (data().length > 0) {
+        <span class="ml-2 font-medium text-xs lg:text-sm text-slate-500 dark:text-slate-400">{{ totalItemsLabel() }}: {{
+            data().length }}</span>
+        }
+
+        <!-- Pagination -->
+        @if (pages().length > 1) {
+        <div class="flex flex-col sm:flex-row justify-between items-center mt-2 mb-2 px-4 gap-4">
+            <!-- Mobile Info (Visible only on small screens) -->
+            <div class="sm:hidden text-xs text-slate-400 font-medium">
+                Página {{ currentPage() }} de {{ totalPages() }}
+            </div>
+
+            <div class="flex items-center bg-slate-100 dark:bg-slate-800/50 p-1 rounded-2xl shadow-inner-sm min-w-[340px] sm:min-w-[400px] justify-between">
+                <!-- Previous Button -->
+                <button (click)="previousPage()" [disabled]="currentPage() === 1" aria-label="Página anterior"
+                    class="cursor-pointer flex items-center justify-center size-9 sm:size-10 rounded-xl transition text-slate-600 dark:text-slate-300 not-disabled:hover:bg-white not-disabled:dark:hover:bg-slate-700 not-disabled:hover:shadow-sm disabled:opacity-20 disabled:cursor-not-allowed border-none bg-transparent">
+                    <app-svg-icon icon="arrowLeft" size="24px"></app-svg-icon>
+                </button>
+
+                <div class="flex items-center gap-1 mx-1">
+                    <!-- Page Numbers -->
+                    @for (page of pages(); track $index) {
+                    @if (page === '...') {
+                    <span class="flex items-center justify-center size-8 sm:size-9 text-slate-400 select-none text-xs w-8 sm:w-9 px-1">
+                        ...
+                    </span>
+                    } @else {
+                    <button (click)="goToPage(page)" [ngClass]="{
+                          'bg-primary text-white shadow-lg shadow-primary/30 scale-105 z-10': currentPage() === page,
+                          'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm': currentPage() !== page
+                        }" [attr.aria-label]="'Página ' + page"
+                        class="cursor-pointer flex items-center justify-center size-8 sm:size-9 rounded-xl font-bold transition-all border-none text-xs sm:text-sm min-w-8 sm:min-w-9">
+                        {{ page }}
+                    </button>
+                    }
+                    }
+                </div>
+
+                <!-- Next Button -->
+                <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" aria-label="Página siguiente"
+                    class="cursor-pointer flex items-center justify-center size-9 sm:size-10 rounded-xl transition text-slate-600 dark:text-slate-300 not-disabled:hover:bg-white not-disabled:dark:hover:bg-slate-700 not-disabled:hover:shadow-sm disabled:opacity-20 disabled:cursor-not-allowed border-none bg-transparent">
+                    <app-svg-icon icon="arrowRight" size="24px"></app-svg-icon>
+                </button>
+            </div>
+
+            <!-- Desktop/Tablet Info -->
+            <div class="hidden sm:block text-xs text-slate-500 dark:text-slate-400 font-medium italic">
+                Página {{ currentPage() }} de {{ totalPages() }}
+            </div>
+        </div>
+        }
+    </div>
+    }
+</div>

@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============= FUNCIONES AUXILIARES =============
+    
+    // Función auxiliar para verificar si el usuario tiene privilegios administrativos
+    function isAdmin() {
+      return request.auth != null &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+    }
+
+    // Permitir gestión operativa y financiera
+    function canManageOperations() {
+      return request.auth != null &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['ADMIN', 'GUEST'];
+    }
+
+    // Verificar que campos requeridos existen
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Verificar que solo se modifican campos permitidos
+    function onlyUpdating(allowedFields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowedFields);
+    }
+
+    // ============= REGLAS DE COLECCIONES =============
+
+    match /users/{userId} {
+      // Lectura pública para verificación de DNI en registro
+      allow read: if true;
+
+      // Creación: Solo si es el propio usuario (registro)
+      allow create: if request.auth != null && 
+                       request.auth.uid == userId &&
+                       hasRequiredFields(['email', 'dni', 'firstName', 'lastName', 'role']);
+
+      // Actualización: El propio usuario O un admin
+      allow update: if (request.auth != null && request.auth.uid == userId) || isAdmin();
+
+      // Eliminación: Solo admins
+      allow delete: if isAdmin();
+    }
+
+    match /configuracion/{docId} {
+      allow read: if request.auth != null;
+
+      // Solo administradores pueden modificar la configuración
+      allow write: if isAdmin();
+    }
+  }
+}

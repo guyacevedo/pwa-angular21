@@ -1,0 +1,23 @@
+{
+  "name": "pwa-angular21",
+  "short_name": "pwa-angular21",
+  "description": "App para la gestión de la comercializadora neymar.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e40af",
+  "icons": [
+    {
+      "src": "logo-raw.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "logo-raw.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

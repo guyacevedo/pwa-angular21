@@ -1,0 +1,142 @@
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# ========== BUILD & COMPILATION ==========
+/dist
+/tmp
+/out-tsc
+/bazel-out
+.angular/
+
+# ========== DEPENDENCIES ==========
+/node_modules
+npm-debug.log
+yarn-error.log
+pnpm-lock.yaml
+package-lock.json
+
+# ========== IDE & EDITOR ==========
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.vscode/settings.local.json
+.vscode/*.log
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# ========== IDE HISTORY ==========
+.history/
+.history/*
+
+# ========== LOCAL TOOLS & CONFIG ==========
+.claude/
+.claude/**/*
+.agents/
+.agents/**/*
+.idx/
+.idx/**/*
+
+# ========== AI & DOCUMENTATION ==========
+AGENTS.md
+GEMINI.md
+blueprint.md
+ANALISIS_REFACTORIZACION.md
+REFACTORIZACION_COMPLETADA.md
+PERMISOS_ANALISIS.md
+
+# ========== SYSTEM FILES ==========
+.DS_Store
+.DS_Store?
+._*
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+*.swp
+*.swo
+*~
+
+# ========== BUILD ARTIFACTS ==========
+/.sass-cache
+/coverage
+/connect.lock
+/libpeerconnection.log
+testem.log
+/typings
+__screenshots__/
+*.log
+
+# ========== FIREBASE & BACKEND ==========
+.firebase/
+.firebaserc
+firebase-debug.log
+firestore-debug.log
+functions/node_modules/
+*.rules.bak
+
+# ========== DOCKER ==========
+.dockerignore
+docker-compose.override.yml
+
+# ========== ENVIRONMENT & SECRETS ==========
+src/environments/environment.ts
+src/environments/environment.prod.ts
+src/environments/environment.development.ts
+!src/environments/environment.template.ts
+!src/environments/environment.model.ts
+
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# ========== OS SPECIFIC ==========
+Thumbs.db
+ehthumbs.db
+.AppleDouble
+.LSOverride
+._*
+
+# ========== TEMPORARY ==========
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+.netlify
+.vercel
+
+# ========== TESTING ==========
+.nyc_output/
+*.lcov
+.test-cache/
+
+# ========== IDE WORKSPACE ==========
+*.code-workspace
+.vscode-remote/
+
+# ========== PNPM ==========
+pnpm-workspace.yaml.local
+.pnpm-workspace-state-v*.json
+
+# ========== MISCELLANEOUS ==========
+*.log
+*.tmp
+*.bak
+*.swp
+*.docx
+*.xlsx
+*.pptx
+*.pdf
+*.zip
+*.tar.gz
+*.7z
+*.rar
+*.iso

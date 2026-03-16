@@ -1,0 +1,174 @@
+/* Global Styles */
+@import './theme/variables.css';
+
+:root {
+  color-scheme: light dark;
+}
+
+/* Tailwind CSS v4 */
+@import 'tailwindcss';
+
+/* Link Tailwind's dark modifier to the .dark class set by ThemeService */
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Paleta de colores de Pesquera NEYMAR */
+  --color-primary: #4d8dff; /* Azul principal */
+  --color-primary-dark: #3d70d1; /* Azul oscuro */
+  --color-secondary: #2dd4bf; /* Teal */
+  --color-third: #333333; /* Gris Oscuro */
+  /* Colores Originales NEYMAR */
+  --color-neymar-blue: #003366;
+  --color-neymar-orange: #ffa45b;
+  --color-white: #ffffff;
+
+  /* Colores neutros */
+  --color-background-light: #f8fafc;
+  --color-text-light: #0f172a;
+  --color-text-secondary-light: #475569;
+  --color-sand: #fef3c7;
+
+  --color-red-primary: #e81513;
+  --color-red-secondary: #fdd8c7;
+
+  /* Tipografía */
+  --font-display: Montserrat, sans-serif;
+  --font-body: 'Open Sans', sans-serif;
+}
+
+@layer base {
+  *, ::before, ::after {
+    box-sizing: border-box;
+    border-color: transparent;
+    border-style: solid;
+    border-width: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-background-light);
+    color: var(--color-text-light);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  opacity: 0;
+  transform: translateY(40px);
+  will-change: opacity, transform;
+  transition:
+    opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Legacy delay classes removed as we now use [delay] input */
+
+.fade-in-up.animate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+
+/* Custom Focus */
+:is(a, button, [tabindex]):focus-visible {
+  outline: 1px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px oklch(62.815% 0.20376 254.812 / 0.95);
+  transition: box-shadow 0.15s ease-in-out;
+}
+
+/* Special case for fully rounded elements to maintain their shape */
+:is(a, button, [tabindex]).rounded-full:focus-visible {
+  border-radius: 9999px;
+}
+
+/* Custom Text Selection */
+::selection {
+  background-color: var(--color-third);
+  color: var(--color-primary);
+}
+
+::-moz-selection {
+  background-color: var(--color-third);
+  color: var(--color-primary);
+}
+
+textarea {
+  resize: none;
+  field-sizing: content;
+}
+
+/* ── UI Standardization Utilities ── */
+
+/* Standard Card/Container Border Radius */
+.ui-card {
+  border-radius: 1rem; /* 16px */
+  @apply shadow-sm border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden;
+}
+
+
+
+/* Glassmorphism Effect */
+.glass-effect {
+  @apply backdrop-blur-md bg-white/70 dark:bg-slate-900/70 border border-white/20 dark:border-slate-800/20;
+}
+
+/* List Item Hover & Active States */
+.list-item-press {
+  @apply active:bg-slate-50 dark:active:bg-slate-800 transition-colors cursor-pointer;
+}
+
+/* Standard KPI Icon Backgrounds */
+.kpi-icon-container {
+  @apply w-10 h-10 rounded-xl flex items-center justify-center shrink-0;
+}
+
+/* Sidebar Active Item — indicador barra lateral izquierda */
+.sidebar-item-active {
+  @apply bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold;
+  position: relative;
+}
+
+.sidebar-item-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 20px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  @apply bg-blue-600 dark:bg-blue-400;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* slate-300 */
+  border-radius: 2px;
+  cursor: pointer;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* slate-400 */
+}

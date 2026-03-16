@@ -1,0 +1,9 @@
+/**
+ * Dark Mode - Native CSS
+ * Uses .dark class on <html> element (set by ThemeService)
+ * and prefers-color-scheme fallback.
+ */
+
+.dark {
+  color-scheme: dark;
+}
