@@ -1,46 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { Messaging, getToken, onMessage } from '@angular/fire/messaging';
 import { Firestore, doc, setDoc } from '@angular/fire/firestore';
-import { Auth } from '@angular/fire/auth';
 
 @Injectable({ providedIn: 'root' })
 export class FcmService {
   private messaging = inject(Messaging);
   private firestore = inject(Firestore);
-  private auth = inject(Auth);
 
   /**
-   * Request notification permission and get FCM token
-   */
-  async requestPermissionAndGetToken(): Promise<string | null> {
-    try {
-      // Check if browser supports notifications
-      if (!('Notification' in window)) {
-        console.log('Browser does not support notifications');
-        return null;
-      }
-
-      // Check current permission
-      if (Notification.permission === 'granted') {
-        return await this.getToken();
-      }
-
-      // Request permission
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        return await this.getToken();
-      }
-
-      console.log('Notification permission denied');
-      return null;
-    } catch (error) {
-      console.error('Error requesting notification permission:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Get FCM token
+   * Get FCM token without requesting permission
+   * Only works if permission is already granted
    */
   private async getToken(): Promise<string | null> {
     try {
@@ -49,22 +18,45 @@ export class FcmService {
           'BHVq1mPKKzA1jcUdKyxYKnYTfXRqR9zGnR8WnGKF2eJvWKQxD8gJqPp3QnJWzaYPkVkLnGqXqL9MqVpGKZv7vxU',
       });
 
-      console.log('FCM Token:', token);
+      console.log('[FcmService] Token obtained:', token);
       return token;
     } catch (error) {
-      console.error('Error getting FCM token:', error);
+      console.error('[FcmService] Error getting token:', error);
       return null;
     }
   }
 
   /**
    * Save FCM token to Firestore for current user
+   * Non-blocking - runs in background without awaiting in login flow
    */
-  async saveFcmToken(userId: string): Promise<void> {
+  saveFcmToken(userId: string): void {
+    // Run in background - don't block login
+    this.saveFcmTokenAsync(userId).catch((error) => {
+      console.error('[FcmService] Error in background save:', error);
+    });
+  }
+
+  /**
+   * Internal async method for saving FCM token
+   */
+  private async saveFcmTokenAsync(userId: string): Promise<void> {
     try {
-      const token = await this.requestPermissionAndGetToken();
+      // Check if notifications are supported
+      if (!('Notification' in window)) {
+        console.log('[FcmService] Notifications not supported');
+        return;
+      }
+
+      // Only attempt if permission is already granted
+      if (Notification.permission !== 'granted') {
+        console.log('[FcmService] Notification permission not granted, skipping token save');
+        return;
+      }
+
+      const token = await this.getToken();
       if (!token) {
-        console.log('No FCM token available');
+        console.log('[FcmService] No FCM token available');
         return;
       }
 
@@ -79,9 +71,32 @@ export class FcmService {
         { merge: true },
       );
 
-      console.log('FCM token saved for user:', userId);
+      console.log('[FcmService] FCM token saved for user:', userId);
     } catch (error) {
-      console.error('Error saving FCM token:', error);
+      console.error('[FcmService] Error saving FCM token:', error);
+    }
+  }
+
+  /**
+   * Request notification permission
+   * Can be called from UI when user clicks to enable notifications
+   */
+  async requestNotificationPermission(): Promise<boolean> {
+    try {
+      if (!('Notification' in window)) {
+        console.log('[FcmService] Notifications not supported');
+        return false;
+      }
+
+      if (Notification.permission === 'granted') {
+        return true;
+      }
+
+      const permission = await Notification.requestPermission();
+      return permission === 'granted';
+    } catch (error) {
+      console.error('[FcmService] Error requesting notification permission:', error);
+      return false;
     }
   }
 
@@ -112,7 +127,7 @@ export class FcmService {
         }
       });
     } catch (error) {
-      console.error('Error listening to foreground messages:', error);
+      console.error('[FcmService] Error listening to foreground messages:', error);
     }
   }
 }

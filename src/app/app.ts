@@ -78,14 +78,17 @@ export class App implements OnInit {
 
   private registerServiceWorker(): void {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/firebase-messaging-sw.js')
-        .then((registration) => {
-          console.log('[App] Service Worker registered:', registration);
-        })
-        .catch((error) => {
-          console.error('[App] Service Worker registration failed:', error);
-        });
+      // Register in background - don't block app
+      setTimeout(() => {
+        navigator.serviceWorker
+          .register('/firebase-messaging-sw.js')
+          .then((registration) => {
+            console.log('[App] Service Worker registered:', registration);
+          })
+          .catch((error) => {
+            console.error('[App] Service Worker registration failed:', error);
+          });
+      }, 0);
     }
   }
 
