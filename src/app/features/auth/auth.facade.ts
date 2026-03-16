@@ -15,6 +15,7 @@ export class AuthFacade implements AuthProvider {
   // Estado reactivo con señales
   private _loading = signal<boolean>(false);
   private _error = signal<string | null>(null);
+  private _isLoggingOut = signal<boolean>(false);
 
   // Señales públicas
   readonly user: Signal<User | null> = this.authService.getCurrentUser;
@@ -23,6 +24,7 @@ export class AuthFacade implements AuthProvider {
   readonly authState$ = this.authService.authState$;
   readonly isLoading: Signal<boolean> = this._loading.asReadonly();
   readonly error: Signal<string | null> = this._error.asReadonly();
+  readonly isLoggingOut: Signal<boolean> = this._isLoggingOut.asReadonly();
 
   /*
    * Inicia sesión con las credenciales proporcionadas y actualiza el estado.
@@ -81,6 +83,7 @@ export class AuthFacade implements AuthProvider {
    * @returns Promise<void>
    */
   async logout(): Promise<void> {
+    this._isLoggingOut.set(true);
     this._loading.set(true);
     this._error.set(null);
 
@@ -91,6 +94,7 @@ export class AuthFacade implements AuthProvider {
       this._error.set(message);
     } finally {
       this._loading.set(false);
+      this._isLoggingOut.set(false);
       this.consoleInform();
     }
   }

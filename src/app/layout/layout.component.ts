@@ -18,7 +18,7 @@ import { AuthFacade } from '../features/auth/auth.facade';
   selector: 'app-main-layout',
   imports: [RouterOutlet, SidebarComponent, HeaderComponent, FooterComponent],
   template: `
-    @if (!authFacade.authReady()) {
+    @if (!authFacade.authReady() || authFacade.isLoggingOut()) {
       <div class="flex h-screen w-full items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div
           class="animate-spin size-8 border-4 border-primary border-t-transparent rounded-full"
