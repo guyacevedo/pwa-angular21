@@ -58,10 +58,22 @@ function startListeningToNotifications() {
         console.log(`[FCM Server] Processing notification: ${doc.id}`);
 
         try {
+          // Mark as sent FIRST using transaction to prevent double processing
+          const alreadySent = await db.runTransaction(async (tx) => {
+            const fresh = await tx.get(doc.ref);
+            if (!fresh.exists || fresh.data().sent === true) return true;
+            tx.update(doc.ref, { sent: true, sentAt: admin.firestore.FieldValue.serverTimestamp() });
+            return false;
+          });
+
+          if (alreadySent) {
+            console.log(`[FCM Server] Notification ${doc.id} already sent, skipping`);
+            continue;
+          }
+
           // Determine target roles based on notification action
           let targetRoles = ['ADMIN'];
           if (notification.action === 'PERMISSIONS_UPDATED' && notification.role) {
-            // Notify the affected role + admins
             const roleMap = { operator: 'OPERATOR', guest: 'GUEST' };
             const affectedRole = roleMap[notification.role];
             if (affectedRole) targetRoles = ['ADMIN', affectedRole];
@@ -69,8 +81,14 @@ function startListeningToNotifications() {
 
           // Query all users and filter locally (avoids composite index requirement)
           const allUsersSnapshot = await db.collection('users').get();
+
+          // Deduplicate by userId in case of duplicates, one token per user
+          const seenUserIds = new Set();
           const adminUsersWithTokens = allUsersSnapshot.docs.filter((doc) => {
             const user = doc.data();
+            const userId = doc.id;
+            if (seenUserIds.has(userId)) return false;
+            seenUserIds.add(userId);
             return (
               targetRoles.includes(user.role) &&
               user.fcmToken &&
@@ -140,14 +158,9 @@ function startListeningToNotifications() {
             }
           }
 
-          // Mark notification as sent
-          await doc.ref.update({
-            sent: true,
-            sentAt: admin.firestore.FieldValue.serverTimestamp(),
-            sentToUsers: adminUsersWithTokens.length,
-          });
-
-          console.log(`[FCM Server] Notification ${doc.id} marked as sent`);
+          // Update sentToUsers count
+          await doc.ref.update({ sentToUsers: adminUsersWithTokens.length });
+          console.log(`[FCM Server] Notification ${doc.id} sent to ${adminUsersWithTokens.length} users`);
         } catch (error) {
           console.error(`[FCM Server] Error processing notification ${doc.id}:`, error);
         } finally {
