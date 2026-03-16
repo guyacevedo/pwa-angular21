@@ -19,13 +19,13 @@ import { AuthFacade } from '../features/auth/auth.facade';
   imports: [RouterOutlet, SidebarComponent, HeaderComponent, FooterComponent],
   template: `
     @if (!authFacade.authReady() || authFacade.isLoggingOut()) {
-      <div class="flex h-dvh w-full items-center justify-center bg-slate-50 dark:bg-slate-900">
+      <div class="flex h-full w-full items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div
           class="animate-spin size-8 border-4 border-primary border-t-transparent rounded-full"
         ></div>
       </div>
     } @else {
-      <div class="flex h-dvh w-full overflow-hidden bg-slate-50 dark:bg-slate-900">
+      <div class="flex h-full w-full overflow-hidden bg-slate-50 dark:bg-slate-900">
         <!-- Sidebar for Desktop -->
         @if (isSplitPaneVisible()) {
           <aside
