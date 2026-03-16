@@ -58,7 +58,7 @@ import { DialogComponent, DialogConfig } from '../../shared/components/dialog/di
     <!-- Dropdown -->
     @if (isOpen()) {
       <div
-        class="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-200 animate-in fade-in zoom-in-95 duration-150 origin-top-right"
+        class="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-200 animate-in fade-in zoom-in-95 duration-150 origin-top-right text-slate-900 dark:text-slate-200"
       >
         <!-- User info header -->
         <div
