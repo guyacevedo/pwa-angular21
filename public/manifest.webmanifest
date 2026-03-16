@@ -1,11 +1,12 @@
 {
-  "name": "pwa-angular21",
-  "short_name": "pwa-angular21",
-  "description": "App para la gestión de la comercializadora neymar.",
+  "name": "PWA Angular 21 Base App",
+  "short_name": "PWA App",
+  "description": "Base PWA application built with Angular 21",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#1e40af",
+  "theme_color": "#003366",
+  "scope": "/",
   "icons": [
     {
       "src": "logo-raw.png",

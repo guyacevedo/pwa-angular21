@@ -15,14 +15,12 @@ const ROUTE_TITLES: Record<string, string> = {
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [
-    UserSubmenuComponent,
-    SvgIconComponent,
-  ],
+  imports: [UserSubmenuComponent, SvgIconComponent],
   template: `
-    <header class="flex-none z-40 bg-neymar-blue dark:bg-slate-950 text-white shadow-md border-b border-white/10">
+    <header
+      class="flex-none z-40 bg-neymar-blue dark:bg-slate-950 text-white shadow-md border-b border-white/10 safe-area-top"
+    >
       <div class="flex items-center justify-between px-4 h-14 gap-3">
-
         <!-- Izquierda: hamburger (mobile) o título de página (desktop) -->
         <div class="flex items-center gap-2 min-w-0">
           @if (!isSplitPaneVisible()) {
@@ -52,7 +50,6 @@ const ROUTE_TITLES: Record<string, string> = {
         <div class="flex items-center shrink-0">
           <app-user-submenu></app-user-submenu>
         </div>
-
       </div>
     </header>
   `,
@@ -70,7 +67,7 @@ export class HeaderComponent {
 
   readonly pageTitle = toSignal(
     this.router.events.pipe(
-      filter(e => e instanceof NavigationEnd),
+      filter((e) => e instanceof NavigationEnd),
       map((e: NavigationEnd) => this.resolveTitle(e.urlAfterRedirects)),
       startWith(this.resolveTitle(this.router.url)),
     ),
@@ -82,7 +79,7 @@ export class HeaderComponent {
     // Exact match first, then prefix match (more specific wins)
     if (ROUTE_TITLES[clean]) return ROUTE_TITLES[clean];
     const match = Object.keys(ROUTE_TITLES)
-      .filter(k => clean.startsWith(k))
+      .filter((k) => clean.startsWith(k))
       .sort((a, b) => b.length - a.length)[0];
     return match ? ROUTE_TITLES[match] : '';
   }

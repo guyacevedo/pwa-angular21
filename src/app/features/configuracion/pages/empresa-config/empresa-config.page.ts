@@ -62,7 +62,7 @@ export class EmpresaConfigPage {
         'Comercio al por menor de carnes (incluye aves de corral), productos cárnicos, pescados y productos de mar, en establecimientos especializados',
       ],
       pieDePaginaFactura: [
-        'Cámara de Comercio Magangué · Matrícula 44760 · Avenida la Candelaria, Cra. 3 #20-29, Magangué · contacto@comercializadora-neymar.com\nEsta factura se asimila en todos sus efectos a una letra de cambio (Art. 774 del Código de Comercio).',
+        'Gracias por su compra.\nEsta factura se asimila en todos sus efectos a una letra de cambio (Art. 774 del Código de Comercio).',
       ],
     });
 

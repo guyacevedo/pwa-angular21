@@ -1,182 +1,184 @@
 <!doctype html>
 <html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>PWA Angular 21</title>
+    <base href="/" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Fav Icon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <!-- PWA -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PWA App" />
+    <meta name="theme-color" content="#003366" />
+    <link rel="manifest" href="manifest.webmanifest" />
 
-<head>
-  <meta charset="utf-8" />
-  <title>Comercializadora NEYMAR</title>
-  <base href="/" />
-  <meta name="color-scheme" content="light dark" />
-  <meta name="viewport"
-    content="viewport-fit=cover, width=device-width, initial-scale=1.0" />
-  <meta name="format-detection" content="telephone=no" />
-  <meta name="msapplication-tap-highlight" content="no" />
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600&display=swap"
-    rel="stylesheet" />
-  <!-- Fav Icon -->
-  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-  <!-- PWA -->
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="NEYMAR" />
-  <link rel="manifest" href="manifest.webmanifest" />
-
-  <!-- ── Inline Splash Screen ─────────────────────────────────────────────── -->
-  <!-- Visible instantáneamente antes de que Angular cargue (elimina pantalla en blanco en iOS/Android) -->
-  <style>
-    #app-splash {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 40px;
-      background: #ffffff;
-      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1),
-                  visibility 0.45s cubic-bezier(0.4,0,0.2,1);
-    }
-
-
-    #app-splash.splash-hide {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-
-    .splash-logo-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .splash-brand {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      width: 100%;
-    }
-
-    .splash-brand-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .splash-brand img {
-      width: 56px;
-      height: auto;
-      object-fit: contain;
-    }
-
-    .splash-brand-texts {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .splash-brand-sub {
-      font-family: Montserrat, sans-serif;
-      font-size: 8px;
-      font-weight: 700;
-      color: #003366;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      line-height: 1;
-      margin: 0;
-    }
-
-    .splash-brand-name {
-      font-family: Montserrat, sans-serif;
-      font-size: 24px;
-      font-weight: 700;
-      color: #003366;
-      line-height: 1.15;
-      margin: 0;
-    }
-
-    .splash-brand-tagline {
-      font-family: Montserrat, sans-serif;
-      font-size: 6.5px;
-      font-weight: 600;
-      color: #b45309;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin: 0;
-    }
-
-    .splash-brand-divider {
-      width: 100%;
-      height: 1px;
-      background: linear-gradient(to right, transparent, #003366, transparent);
-      border: none;
-      margin: 4px 0 2px;
-    }
-
-    .splash-brand-motto {
-      font-family: 'Open Sans', sans-serif;
-      font-style: italic;
-      font-size: 9px;
-      color: #003366;
-      text-align: center;
-      margin: 0;
-    }
-
-
-    .splash-ring {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: 2.5px solid rgba(0,51,102,0.12);
-      border-top-color: #003366;
-      animation: splash-spin 0.75s linear infinite;
-    }
-
-    @keyframes splash-spin {
-      to { transform: rotate(360deg); }
-    }
-
-  </style>
-</head>
-
-<body>
-  <!-- Splash nativo: se oculta cuando Angular llama a hideSplash() -->
-  <div id="app-splash" role="status" aria-label="Cargando aplicación">
-    <div class="splash-logo-wrap">
-      <!-- Misma estructura que BrandComponent isSmall=false -->
-      <div class="splash-brand">
-        <div class="splash-brand-row">
-          <img src="/logo-comercializadora-neymar.svg" alt="Logo Comercializadora Neymar" width="56" height="46" />
-          <div class="splash-brand-texts">
-            <p class="splash-brand-sub">COMERCIALIZADORA</p>
-            <p class="splash-brand-name">Neymar</p>
-            <p class="splash-brand-tagline">Pesca &amp; Distribución</p>
-          </div>
-        </div>
-        <hr class="splash-brand-divider" />
-        <p class="splash-brand-motto">Del río a su mesa, frescura que se nota.</p>
-      </div>
-    </div>
-    <div class="splash-ring"></div>
-  </div>
-
-  <app-root></app-root>
-
-  <script>
-    // Expone función global para que Angular la llame al estar listo
-    window.hideSplash = function() {
-      var el = document.getElementById('app-splash');
-      if (el) {
-        el.classList.add('splash-hide');
-        setTimeout(function() { el.remove(); }, 500);
+    <!-- ── Inline Splash Screen ─────────────────────────────────────────────── -->
+    <!-- Visible instantáneamente antes de que Angular cargue (elimina pantalla en blanco en iOS/Android) -->
+    <style>
+      #app-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 40px;
+        background: #ffffff;
+        transition:
+          opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+          visibility 0.45s cubic-bezier(0.4, 0, 0.2, 1);
       }
-    };
-  </script>
-</body>
 
+      #app-splash.splash-hide {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .splash-logo-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .splash-brand {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+      }
+
+      .splash-brand-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .splash-brand img {
+        width: 56px;
+        height: auto;
+        object-fit: contain;
+      }
+
+      .splash-brand-texts {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .splash-brand-sub {
+        font-family: Montserrat, sans-serif;
+        font-size: 8px;
+        font-weight: 700;
+        color: #003366;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        line-height: 1;
+        margin: 0;
+      }
+
+      .splash-brand-name {
+        font-family: Montserrat, sans-serif;
+        font-size: 24px;
+        font-weight: 700;
+        color: #003366;
+        line-height: 1.15;
+        margin: 0;
+      }
+
+      .splash-brand-tagline {
+        font-family: Montserrat, sans-serif;
+        font-size: 6.5px;
+        font-weight: 600;
+        color: #b45309;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin: 0;
+      }
+
+      .splash-brand-divider {
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(to right, transparent, #003366, transparent);
+        border: none;
+        margin: 4px 0 2px;
+      }
+
+      .splash-brand-motto {
+        font-family: 'Open Sans', sans-serif;
+        font-style: italic;
+        font-size: 9px;
+        color: #003366;
+        text-align: center;
+        margin: 0;
+      }
+
+      .splash-ring {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2.5px solid rgba(0, 51, 102, 0.12);
+        border-top-color: #003366;
+        animation: splash-spin 0.75s linear infinite;
+      }
+
+      @keyframes splash-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Splash nativo: se oculta cuando Angular llama a hideSplash() -->
+    <div id="app-splash" role="status" aria-label="Cargando aplicación">
+      <div class="splash-logo-wrap">
+        <!-- Misma estructura que BrandComponent isSmall=false -->
+        <div class="splash-brand">
+          <div class="splash-brand-row">
+            <img src="/logo-comercializadora-neymar.svg" alt="Logo" width="56" height="46" />
+            <div class="splash-brand-texts">
+              <p class="splash-brand-sub">YOUR COMPANY</p>
+              <p class="splash-brand-name">Brand</p>
+              <p class="splash-brand-tagline">Tagline</p>
+            </div>
+          </div>
+          <hr class="splash-brand-divider" />
+          <p class="splash-brand-motto">Your brand motto here.</p>
+        </div>
+      </div>
+      <div class="splash-ring"></div>
+    </div>
+
+    <app-root></app-root>
+
+    <script>
+      // Expone función global para que Angular la llame al estar listo
+      window.hideSplash = function () {
+        var el = document.getElementById('app-splash');
+        if (el) {
+          el.classList.add('splash-hide');
+          setTimeout(function () {
+            el.remove();
+          }, 500);
+        }
+      };
+    </script>
+  </body>
 </html>

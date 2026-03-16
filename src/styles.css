@@ -12,14 +12,14 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Paleta de colores de Pesquera NEYMAR */
-  --color-primary: #4d8dff; /* Azul principal */
-  --color-primary-dark: #3d70d1; /* Azul oscuro */
+  /* Primary color palette */
+  --color-primary: #4d8dff; /* Primary blue */
+  --color-primary-dark: #3d70d1; /* Dark blue */
   --color-secondary: #2dd4bf; /* Teal */
-  --color-third: #333333; /* Gris Oscuro */
-  /* Colores Originales NEYMAR */
-  --color-neymar-blue: #003366;
-  --color-neymar-orange: #ffa45b;
+  --color-third: #333333; /* Dark gray */
+  /* Brand colors */
+  --color-brand-blue: #003366;
+  --color-brand-orange: #ffa45b;
   --color-white: #ffffff;
 
   /* Colores neutros */
@@ -31,7 +31,7 @@
   --color-red-primary: #e81513;
   --color-red-secondary: #fdd8c7;
 
-  /* Tipografía */
+  /* Typography */
   --font-display: Montserrat, sans-serif;
   --font-body: 'Open Sans', sans-serif;
 }
@@ -115,6 +115,23 @@ textarea {
 }
 
 /* ── UI Standardization Utilities ── */
+
+/* Safe Area Support for iOS Notch/Dynamic Island */
+.safe-area-top {
+  padding-top: max(0.875rem, env(safe-area-inset-top));
+}
+
+.safe-area-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.safe-area-left {
+  padding-left: max(1rem, env(safe-area-inset-left));
+}
+
+.safe-area-right {
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
 
 /* Standard Card/Container Border Radius */
 .ui-card {
