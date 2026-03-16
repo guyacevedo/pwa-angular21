@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, addDoc } from '@angular/fire/firestore';
+import { UserStatus } from '../types/user-status.type';
 
 export interface AuthNotification {
   userId: string;
@@ -7,6 +8,8 @@ export interface AuthNotification {
   userEmail: string;
   action: 'LOGIN' | 'LOGOUT';
   timestamp: Date;
+  newStatus: UserStatus;
+  previousStatus?: UserStatus;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -31,6 +34,8 @@ export class NotificationService {
         userId: userData.id,
         userName: `${userData.firstName} ${userData.lastName}`,
         userEmail: userData.email,
+        newStatus: 'ACTIVE',
+        previousStatus: 'INACTIVE',
         timestamp: new Date(),
         read: false,
       });
@@ -57,6 +62,8 @@ export class NotificationService {
         userId: userData.id,
         userName: `${userData.firstName} ${userData.lastName}`,
         userEmail: userData.email,
+        newStatus: 'INACTIVE',
+        previousStatus: 'ACTIVE',
         timestamp: new Date(),
         read: false,
       });
