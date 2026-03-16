@@ -19,19 +19,13 @@ import { AuthFacade } from '../features/auth/auth.facade';
   imports: [RouterOutlet, SidebarComponent, HeaderComponent, FooterComponent],
   template: `
     @if (!authFacade.authReady() || authFacade.isLoggingOut()) {
-      <div
-        class="flex w-full items-center justify-center bg-slate-50 dark:bg-slate-900"
-        style="height: calc(var(--real-vh, 1svh) * 100)"
-      >
+      <div class="flex h-full w-full items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div
           class="animate-spin size-8 border-4 border-primary border-t-transparent rounded-full"
         ></div>
       </div>
     } @else {
-      <div
-        class="flex w-full overflow-hidden bg-slate-50 dark:bg-slate-900"
-        style="height: calc(var(--real-vh, 1svh) * 100)"
-      >
+      <div class="flex h-full w-full overflow-hidden bg-slate-50 dark:bg-slate-900">
         <!-- Sidebar for Desktop -->
         @if (isSplitPaneVisible()) {
           <aside
@@ -90,8 +84,7 @@ import { AuthFacade } from '../features/auth/auth.facade';
     }
   `,
   host: {
-    class: 'block w-full overflow-hidden',
-    style: 'height: calc(var(--real-vh, 1svh) * 100)',
+    class: 'block h-full w-full overflow-hidden',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -127,14 +120,6 @@ export class LayoutComponent {
   }
 
   private checkScreenSize() {
-    // Set --real-vh CSS variable to actual viewport height (fixes iOS PWA blank space)
-    // Uses rAF to wait for Safari to stabilize the viewport after initial paint
-    const setVh = () => {
-      document.documentElement.style.setProperty('--real-vh', `${window.innerHeight * 0.01}px`);
-    };
-    setVh();
-    requestAnimationFrame(setVh);
-
     const isDesktop = window.innerWidth >= 1024; // lg breakpoint in tailwind
     this.isSplitPaneVisible.set(isDesktop);
     if (isDesktop) {
