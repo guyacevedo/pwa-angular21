@@ -2,6 +2,11 @@
   "firestore": {
     "rules": "firestore.rules"
   },
+  "functions": {
+    "source": "functions",
+    "codebase": "default",
+    "runtime": "nodejs20"
+  },
   "hosting": {
     "site": "app-base-7de4d",
     "public": "dist/pwa-angular21/browser",

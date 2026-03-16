@@ -14,6 +14,8 @@ import { mapUserDates } from '../utils/firestore.utils';
 import { AuthRepository } from '../../core/interfaces/auth.repository';
 import { User } from '../../core/models';
 import { FirebaseUserService } from './firebase-user.service';
+import { NotificationService } from './notification.service';
+import { FcmService } from './fcm.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
 
@@ -24,6 +26,8 @@ export class FirebaseAuthService implements AuthRepository {
   private auth: Auth = inject(Auth);
   private userService = inject(FirebaseUserService);
   private firestore = inject(Firestore);
+  private notificationService = inject(NotificationService);
+  private fcmService = inject(FcmService);
 
   private readonly _authReady = signal(false);
   public readonly authReady = this._authReady.asReadonly();
@@ -108,11 +112,28 @@ export class FirebaseAuthService implements AuthRepository {
     // Update user lastLogin and status to ACTIVE after login
     const currentUser = this.auth.currentUser;
     if (currentUser) {
+      // Get user data for notification
+      const userData = await this.userService.getUserByUId(currentUser.uid);
+
       await this.userService.updateUser({
         id: currentUser.uid,
         lastLogin: new Date(),
         status: 'ACTIVE',
       });
+
+      // Send login notification to users with permissions
+      if (userData) {
+        await this.notificationService.notifyLogin({
+          id: userData.id,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          email: userData.email,
+        });
+      }
+
+      // Initialize FCM for this user
+      await this.fcmService.initializeMessaging();
+
       // Small delay to ensure Firestore has persisted the update before user$ observable re-reads
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
@@ -122,11 +143,27 @@ export class FirebaseAuthService implements AuthRepository {
     // Update user lastLogout and status to INACTIVE before logout
     const currentUser = this.auth.currentUser;
     if (currentUser) {
+      // Get user data for notification
+      const userData = await this.userService.getUserByUId(currentUser.uid);
+
       await this.userService.updateUser({
         id: currentUser.uid,
         lastLogout: new Date(),
         status: 'INACTIVE',
       });
+
+      // Send logout notification to users with permissions
+      if (userData) {
+        await this.notificationService.notifyLogout({
+          id: userData.id,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          email: userData.email,
+        });
+      }
+
+      // Clear FCM token
+      await this.fcmService.clearFcmToken();
     }
     await signOut(this.auth);
   }
