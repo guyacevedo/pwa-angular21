@@ -115,8 +115,8 @@ export class FirebaseAuthService implements AuthRepository {
       // Get user data for notification
       const userData = await this.userService.getUserByUId(currentUser.uid);
 
-      // Save FCM token for push notifications
-      await this.fcmService.saveFcmToken(currentUser.uid);
+      // Save FCM token for push notifications (non-blocking)
+      this.fcmService.saveFcmToken(currentUser.uid);
 
       await this.userService.updateUser({
         id: currentUser.uid,
