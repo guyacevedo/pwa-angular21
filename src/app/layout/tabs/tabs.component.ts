@@ -17,7 +17,9 @@ interface TabItem {
   standalone: true,
   imports: [RouterLink, RouterLinkActive, SvgIconComponent],
   template: `
-    <nav class="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800">
+    <nav
+      class="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 pb-[max(1rem,env(safe-area-inset-bottom))]"
+    >
       <div class="flex items-center justify-around h-14">
         @for (tab of visibleTabs(); track tab.tab) {
           <a
