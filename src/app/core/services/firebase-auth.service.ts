@@ -1,22 +1,16 @@
-import {
-  Injectable,
-  inject,
-  EnvironmentInjector,
-  runInInjectionContext,
-  computed,
-  signal,
-} from '@angular/core';
+import { Injectable, inject, computed, signal } from '@angular/core';
 import { initializeApp, deleteApp } from 'firebase/app';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  User as FirebaseUser,
   getAuth,
 } from 'firebase/auth';
 import { Auth, user } from '@angular/fire/auth';
-import { Observable, from, of, tap } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { Firestore, doc, onSnapshot } from '@angular/fire/firestore';
+import { mapUserDates } from '../utils/firestore.utils';
 import { AuthRepository } from '../../core/interfaces/auth.repository';
 import { User } from '../../core/models';
 import { FirebaseUserService } from './firebase-user.service';
@@ -29,17 +23,60 @@ import { environment } from '../../../environments/environment';
 export class FirebaseAuthService implements AuthRepository {
   private auth: Auth = inject(Auth);
   private userService = inject(FirebaseUserService);
-  private injector = inject(EnvironmentInjector);
+  private firestore = inject(Firestore);
 
   private readonly _authReady = signal(false);
   public readonly authReady = this._authReady.asReadonly();
 
   readonly user$: Observable<User | null> = user(this.auth).pipe(
-    switchMap((user) => {
-      if (!user) return of(null);
-      return from(this.mapFirebaseUserToUser(user));
+    switchMap((authUser) => {
+      if (!authUser) {
+        this._authReady.set(true);
+        return of(null);
+      }
+      // Use realtime listener for Firestore user data instead of one-time read
+      return new Observable<User | null>((subscriber) => {
+        const unsubscribe = onSnapshot(
+          doc(this.firestore, 'users', authUser.uid),
+          (docSnapshot) => {
+            if (docSnapshot.exists()) {
+              const data = docSnapshot.data();
+              const userData = {
+                ...data,
+                ...mapUserDates(data),
+              } as User;
+              subscriber.next(userData);
+              this._authReady.set(true);
+            } else {
+              // User doc doesn't exist, use fallback
+              subscriber.next({
+                id: authUser.uid,
+                firstName: 'Desconocido',
+                lastName: 'Desconocido',
+                dni: 'Desconocido',
+                email: authUser.email || '',
+                phone: 'Desconocido',
+                profilePictureUrl:
+                  authUser.photoURL ||
+                  'https://res.cloudinary.com/dfurubiqj/image/upload/v1759346209/default-profile_qzf9ga_mkixzk.png',
+                registrationDate: new Date(authUser.metadata.creationTime || Date.now()),
+                role: 'GUEST',
+                status: 'DISABLED',
+                lastLogin: new Date(authUser.metadata.lastSignInTime || Date.now()),
+                lastLogout: new Date(authUser.metadata.lastSignInTime || Date.now()),
+                uid: authUser.uid,
+              } as User);
+              this._authReady.set(true);
+            }
+          },
+          (error) => {
+            console.error('Error listening to user data:', error);
+            subscriber.error(error);
+          },
+        );
+        return () => unsubscribe();
+      });
     }),
-    tap(() => this._authReady.set(true)),
   );
 
   readonly authState$ = this.user$;
@@ -92,41 +129,5 @@ export class FirebaseAuthService implements AuthRepository {
       });
     }
     await signOut(this.auth);
-  }
-
-  private async mapFirebaseUserToUser(user: FirebaseUser): Promise<User> {
-    return runInInjectionContext(this.injector, async () => {
-      // Obtener datos completos desde Firestore
-      let userData = await this.userService.getUserByUId(user.uid);
-
-      // If no user found, wait a bit and retry (handles race condition after login)
-      if (!userData) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        userData = await this.userService.getUserByUId(user.uid);
-      }
-
-      if (userData) {
-        return userData;
-      }
-
-      // Fallback: only Auth data
-      return {
-        id: user.uid,
-        firstName: 'Desconocido',
-        lastName: 'Desconocido',
-        dni: 'Desconocido',
-        email: user.email || '',
-        phone: 'Desconocido',
-        profilePictureUrl:
-          user.photoURL ||
-          'https://res.cloudinary.com/dfurubiqj/image/upload/v1759346209/default-profile_qzf9ga_mkixzk.png',
-        registrationDate: new Date(user.metadata.creationTime || Date.now()),
-        role: 'GUEST',
-        status: 'DISABLED',
-        lastLogin: new Date(user.metadata.lastSignInTime || Date.now()),
-        lastLogout: new Date(user.metadata.lastSignInTime || Date.now()),
-        uid: user.uid,
-      } as User;
-    });
   }
 }
