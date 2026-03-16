@@ -11,7 +11,6 @@
 /node_modules
 npm-debug.log
 yarn-error.log
-pnpm-lock.yaml
 package-lock.json
 
 # ========== IDE & EDITOR ==========
