@@ -8,7 +8,7 @@ import { TabsComponent } from '../tabs/tabs.component';
   template: ` <app-tabs></app-tabs> `,
   styles: [],
   host: {
-    class: 'flex-none z-40 w-full safe-area-bottom',
+    class: 'flex-none z-40 w-full',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
