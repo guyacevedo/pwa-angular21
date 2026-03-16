@@ -21,6 +21,7 @@ import { getAnalytics, provideAnalytics } from '@angular/fire/analytics';
 import { getPerformance, providePerformance } from '@angular/fire/performance';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
+import { getMessaging, provideMessaging } from '@angular/fire/messaging';
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 import { GlobalErrorHandler } from './core/services/global-error-handler.service';
@@ -32,7 +33,6 @@ import { AUTH_REPOSITORY } from './core/interfaces/auth.repository';
 import { USER_REPOSITORY } from './core/interfaces/user.repository';
 import { AUTH_PROVIDER } from './core/interfaces/auth-provider.interface';
 import { AuthFacade } from './features/auth/auth.facade';
-
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -53,6 +53,7 @@ export const appConfig: ApplicationConfig = {
     provideAnalytics(() => getAnalytics()),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
+    provideMessaging(() => getMessaging()),
     providePerformance(() => getPerformance()),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     provideBrowserGlobalErrorListeners(),
