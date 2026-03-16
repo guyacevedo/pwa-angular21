@@ -5,9 +5,10 @@ import {
   inject,
   PLATFORM_ID,
   signal,
+  effect,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { HeaderComponent } from './header/header.component';
 import { FooterComponent } from './footer/footer.component';
@@ -90,12 +91,22 @@ import { AuthFacade } from '../features/auth/auth.facade';
 export class LayoutComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
   readonly authFacade = inject(AuthFacade);
 
   protected readonly isMenuOpen = signal(false);
   protected readonly isSplitPaneVisible = signal(false);
 
   constructor() {
+    // Monitor auth state and redirect if user logs out
+    effect(() => {
+      const user = this.authFacade.user();
+      // If user becomes null and we're not already authenticated, navigate to login
+      if (user === null && this.authFacade.authReady()) {
+        this.router.navigate(['/auth/login'], { replaceUrl: true });
+      }
+    });
+
     if (isPlatformBrowser(this.platformId)) {
       const boundCheck = this.checkScreenSize.bind(this);
       this.checkScreenSize();
