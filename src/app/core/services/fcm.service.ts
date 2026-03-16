@@ -14,7 +14,8 @@ export class FcmService {
   private async getToken(): Promise<string | null> {
     try {
       const token = await getToken(this.messaging, {
-        vapidKey: 'dZfZQDI5yY4xUzGXCOvp4assfV95eSHpyHrdjsWNdvc',
+        vapidKey:
+          'BDyWBbTyUWVQSxkBaZvVF2nxaQgImVcTpLL7EQE9JtF-QoRWMV5XgnSG5x39zgT5xdmIF6_SQrJn4ZGtsB8v9jU',
       });
 
       console.log('[FcmService] Token obtained:', token);
@@ -30,10 +31,20 @@ export class FcmService {
    * Non-blocking - runs in background without awaiting in login flow
    */
   saveFcmToken(userId: string): void {
-    // Run in background - don't block login
-    this.saveFcmTokenAsync(userId).catch((error) => {
-      console.error('[FcmService] Error in background save:', error);
-    });
+    // Wait for Service Worker to be ready, then save token in background
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready
+        .then(() => {
+          this.saveFcmTokenAsync(userId).catch((error) => {
+            console.error('[FcmService] Error in background save:', error);
+          });
+        })
+        .catch((error) => {
+          console.error('[FcmService] Service Worker not ready:', error);
+        });
+    } else {
+      console.warn('[FcmService] Service Workers not supported');
+    }
   }
 
   /**
@@ -109,25 +120,23 @@ export class FcmService {
     }) => void,
   ): void {
     try {
-      // Wrap in setTimeout to ensure it doesn't block
-      setTimeout(() => {
-        onMessage(this.messaging, (payload) => {
-          console.log('[FcmService] Foreground message received:', payload);
-          onMessage$(payload);
+      // Call onMessage directly within injection context
+      onMessage(this.messaging, (payload) => {
+        console.log('[FcmService] Foreground message received:', payload);
+        onMessage$(payload);
 
-          // Show notification even in foreground
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.ready.then((registration) => {
-              registration.showNotification(payload.notification?.title || 'Nueva Notificación', {
-                body: payload.notification?.body || '',
-                icon: payload.notification?.icon || '/favicon.ico',
-                badge: '/favicon.ico',
-                data: payload.data || {},
-              });
+        // Show notification even in foreground
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then((registration) => {
+            registration.showNotification(payload.notification?.title || 'Nueva Notificación', {
+              body: payload.notification?.body || '',
+              icon: payload.notification?.icon || '/favicon.ico',
+              badge: '/favicon.ico',
+              data: payload.data || {},
             });
-          }
-        });
-      }, 0);
+          });
+        }
+      });
     } catch (error) {
       console.error('[FcmService] Error listening to foreground messages:', error);
     }
