@@ -111,6 +111,8 @@ export class LayoutComponent {
       const boundCheck = this.checkScreenSize.bind(this);
       this.checkScreenSize();
       window.addEventListener('resize', boundCheck);
+      // Re-check after page fully loads — fixes iOS PWA initial blank space
+      window.addEventListener('load', boundCheck, { once: true });
 
       // Cleanup the listener when the component is destroyed
       this.destroyRef.onDestroy(() => {
