@@ -76,6 +76,8 @@ export class FirebaseAuthService implements AuthRepository {
         lastLogin: new Date(),
         status: 'ACTIVE',
       });
+      // Small delay to ensure Firestore has persisted the update before user$ observable re-reads
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
 
@@ -95,7 +97,14 @@ export class FirebaseAuthService implements AuthRepository {
   private async mapFirebaseUserToUser(user: FirebaseUser): Promise<User> {
     return runInInjectionContext(this.injector, async () => {
       // Obtener datos completos desde Firestore
-      const userData = await this.userService.getUserByUId(user.uid);
+      let userData = await this.userService.getUserByUId(user.uid);
+
+      // If no user found, wait a bit and retry (handles race condition after login)
+      if (!userData) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        userData = await this.userService.getUserByUId(user.uid);
+      }
+
       if (userData) {
         return userData;
       }
