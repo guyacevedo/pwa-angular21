@@ -13,7 +13,6 @@ import { PwaUpdateService } from './core/services/pwa-update.service';
 import { ThemeService } from './core/services/theme.service';
 import { AuthFacade } from './features/auth/auth.facade';
 import { FcmService } from './core/services/fcm.service';
-import { ViewportService } from './core/services/viewport.service';
 import { filter } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -35,7 +34,6 @@ export class App implements OnInit {
   private readonly authFacade = inject(AuthFacade);
   private readonly themeService = inject(ThemeService);
   private readonly fcmService = inject(FcmService);
-  private readonly viewportService = inject(ViewportService); // Initialize viewport fix
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {

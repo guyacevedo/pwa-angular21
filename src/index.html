@@ -24,6 +24,20 @@
     <meta name="theme-color" content="#003366" />
     <link rel="manifest" href="manifest.webmanifest" />
 
+    <!-- iOS PWA: Set viewport height BEFORE Angular renders -->
+    <script>
+      (function () {
+        function setVh() {
+          document.documentElement.style.setProperty('--real-vh', window.innerHeight * 0.01 + 'px');
+        }
+        setVh();
+        window.addEventListener('resize', setVh);
+        if ('visualViewport' in window) {
+          window.visualViewport?.addEventListener('resize', setVh);
+        }
+      })();
+    </script>
+
     <!-- ── Inline Splash Screen ─────────────────────────────────────────────── -->
     <!-- Visible instantáneamente antes de que Angular cargue (elimina pantalla en blanco en iOS/Android) -->
     <style>
