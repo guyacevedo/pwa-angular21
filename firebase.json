@@ -3,7 +3,7 @@
     "rules": "firestore.rules"
   },
   "hosting": {
-    "site": "pwa-angular21",
+    "site": "app-base-7de4d",
     "public": "dist/pwa-angular21/browser",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
