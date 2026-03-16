@@ -12,14 +12,19 @@ import { NgOptimizedImage } from '@angular/common';
         <img
           [ngSrc]="'/logo-comercializadora-neymar.svg'"
           alt="Logo Comercializadora Neymar"
-          [width]="56" [height]="46"
+          [width]="56"
+          [height]="46"
           class="object-contain h-auto w-12 sm:w-14 shrink-0"
         />
         <div class="flex flex-col justify-center min-w-0">
-          <span class="font-display font-bold text-neymar-blue dark:text-slate-200 tracking-wider uppercase leading-none text-[0.45rem] sm:text-[0.55rem] truncate">
+          <span
+            class="font-display font-bold text-brand-blue dark:text-slate-200 tracking-wider uppercase leading-none text-[0.45rem] sm:text-[0.55rem] truncate"
+          >
             COMERCIALIZADORA
           </span>
-          <span class="font-display font-bold text-neymar-blue dark:text-white leading-tight text-[0.9rem] sm:text-[1.1rem]">
+          <span
+            class="font-display font-bold text-brand-blue dark:text-white leading-tight text-[0.9rem] sm:text-[1.1rem]"
+          >
             Neymar
           </span>
         </div>
@@ -31,24 +36,33 @@ import { NgOptimizedImage } from '@angular/common';
           <img
             [ngSrc]="'/logo-comercializadora-neymar.svg'"
             alt="Logo Comercializadora Neymar"
-            [width]="72" [height]="48"
+            [width]="72"
+            [height]="48"
             class="object-contain h-auto w-14 shrink-0"
           />
           <div class="flex flex-col justify-center min-w-0">
-            <span class="font-display font-bold text-neymar-blue dark:text-slate-200 tracking-wider uppercase leading-none text-[0.5rem]">
+            <span
+              class="font-display font-bold text-brand-blue dark:text-slate-200 tracking-wider uppercase leading-none text-[0.5rem]"
+            >
               COMERCIALIZADORA
             </span>
-            <span class="font-display font-bold text-neymar-blue dark:text-white leading-tight text-[1.5rem]">
+            <span
+              class="font-display font-bold text-brand-blue dark:text-white leading-tight text-[1.5rem]"
+            >
               Neymar
             </span>
-            <span class="font-display font-semibold text-[#b45309] dark:text-[#b57909] uppercase tracking-[2px] text-[0.4rem]">
+            <span
+              class="font-display font-semibold text-[#b45309] dark:text-[#b57909] uppercase tracking-[2px] text-[0.4rem]"
+            >
               Pesca &amp; Distribución
             </span>
           </div>
         </div>
         <div class="w-full text-center">
-          <hr class="border-0 h-px w-full bg-linear-to-r from-transparent via-neymar-blue dark:via-slate-500 to-transparent" />
-          <p class="font-body italic text-neymar-blue dark:text-slate-400 text-[0.55rem] mt-1">
+          <hr
+            class="border-0 h-px w-full bg-linear-to-r from-transparent via-brand-blue dark:via-slate-500 to-transparent"
+          />
+          <p class="font-body italic text-brand-blue dark:text-slate-400 text-[0.55rem] mt-1">
             Del río a su mesa, frescura que se nota.
           </p>
         </div>
