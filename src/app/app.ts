@@ -21,7 +21,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   standalone: true,
   imports: [RouterOutlet],
   template: `
-    <main class="w-screen bg-background h-full">
+    <main class="w-screen bg-background" style="height: calc(var(--real-vh, 1svh) * 100)">
       <router-outlet></router-outlet>
     </main>
   `,
