@@ -1,10 +1,9 @@
 import { Routes } from '@angular/router';
-import { manageConfigGuard } from '../../core/guards/role.guard';
+import { manageConfigGuard } from '../../core/guards/role.guard'; // Only used for 'empresa' subroute
 
 export const CONFIGURACION_ROUTES: Routes = [
   {
     path: '',
-    canActivate: [manageConfigGuard],
     loadComponent: () =>
       import('./pages/configuracion/configuracion.page').then((m) => m.ConfiguracionPage),
   },
