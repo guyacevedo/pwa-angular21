@@ -18,13 +18,13 @@ interface TabItem {
   imports: [RouterLink, RouterLinkActive, SvgIconComponent],
   template: `
     <nav class="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800">
-      <div class="flex items-center justify-around h-14">
+      <div class="flex items-center justify-around h-18">
         @for (tab of visibleTabs(); track tab.tab) {
           <a
             [routerLink]="tab.route"
-            routerLinkActive="text-blue-600 dark:text-blue-400 border-t-[3px] border-blue-600 dark:border-blue-400"
+            routerLinkActive="text-blue-600! dark:text-blue-400 border-t-[3px] border-blue-600! dark:border-blue-400"
             [routerLinkActiveOptions]="{ exact: false }"
-            class="flex flex-col items-center justify-center flex-1 h-full text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors border-t-[3px] border-transparent"
+            class="flex flex-col items-center justify-center flex-1 h-full pb-4 text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors border-t-[3px] border-transparent"
           >
             <app-svg-icon [icon]="tab.icon" size="22px" class="mb-0.5"></app-svg-icon>
             <span class="text-[10px] font-semibold uppercase tracking-wide">{{ tab.label }}</span>

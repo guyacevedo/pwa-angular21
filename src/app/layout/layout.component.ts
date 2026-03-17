@@ -70,7 +70,7 @@ import { AuthFacade } from '../features/auth/auth.facade';
             (toggleMenu)="isMenuOpen.set(!isMenuOpen())"
           ></app-header>
 
-          <main class="flex-1 overflow-hidden flex flex-col pb-14">
+          <main class="flex-1 overflow-hidden flex flex-col">
             <div class="flex-1 overflow-y-auto" id="main-content">
               <router-outlet></router-outlet>
             </div>
@@ -86,7 +86,7 @@ import { AuthFacade } from '../features/auth/auth.facade';
     }
   `,
   host: {
-    class: 'flex flex-col h-full w-full overflow-hidden',
+    class: 'block h-full w-full',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
