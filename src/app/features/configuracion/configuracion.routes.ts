@@ -4,6 +4,7 @@ import { manageConfigGuard } from '../../core/guards/role.guard';
 export const CONFIGURACION_ROUTES: Routes = [
   {
     path: '',
+    canActivate: [manageConfigGuard],
     loadComponent: () =>
       import('./pages/configuracion/configuracion.page').then((m) => m.ConfiguracionPage),
   },

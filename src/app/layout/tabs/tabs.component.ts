@@ -49,6 +49,7 @@ export class TabsComponent {
   readonly visibleTabs = computed(() =>
     this.allTabs.filter((tab) => {
       if (tab.tab === 'usuarios') return this.permissions.canViewUsers();
+      if (tab.tab === 'configuracion') return this.permissions.canManageConfig();
       return true;
     }),
   );

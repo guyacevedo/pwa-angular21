@@ -5,7 +5,9 @@ import { AuthFacade } from '../../features/auth/auth.facade';
 import { map, take } from 'rxjs';
 
 /** Guard genérico que verifica un permiso específico */
-const createPermissionGuard = (permissionCheck: (p: PermissionsService) => boolean): CanActivateFn => {
+const createPermissionGuard = (
+  permissionCheck: (p: PermissionsService) => boolean,
+): CanActivateFn => {
   return () => {
     const permissions = inject(PermissionsService);
     const authFacade = inject(AuthFacade);
@@ -35,6 +37,9 @@ export const manageRolesGuard: CanActivateFn = createPermissionGuard((p) => p.ca
 
 /** Guard para configuración de empresa */
 export const manageConfigGuard: CanActivateFn = createPermissionGuard((p) => p.canManageConfig());
+
+/** Guard para acceso al dashboard */
+export const viewDashboardGuard: CanActivateFn = createPermissionGuard((p) => p.canViewDashboard());
 
 /** Guard legado: redirige a ADMIN si es posible ver usuarios */
 export const adminGuard: CanActivateFn = viewUsersGuard;
