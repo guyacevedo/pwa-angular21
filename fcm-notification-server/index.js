@@ -82,27 +82,22 @@ function startListeningToNotifications() {
           // Query all users and filter locally (avoids composite index requirement)
           const allUsersSnapshot = await db.collection('users').get();
 
-          // Deduplicate by userId in case of duplicates, one token per user
-          const seenUserIds = new Set();
-          const adminUsersWithTokens = allUsersSnapshot.docs.filter((doc) => {
+          // Collect all tokens for target roles (support multiple tokens per user)
+          const tokensToSend = [];
+          allUsersSnapshot.docs.forEach((doc) => {
             const user = doc.data();
-            const userId = doc.id;
-            if (seenUserIds.has(userId)) return false;
-            seenUserIds.add(userId);
-            return (
-              targetRoles.includes(user.role) &&
-              user.fcmToken &&
-              typeof user.fcmToken === 'string' &&
-              user.fcmToken.length > 0
+            if (!targetRoles.includes(user.role)) return;
+
+            // Support both old (fcmToken) and new (fcmTokens) formats
+            const tokens = user.fcmTokens || (user.fcmToken ? [user.fcmToken] : []);
+            tokensToSend.push(
+              ...tokens.filter((token) => token && typeof token === 'string' && token.length > 0)
             );
           });
 
-          console.log(`[FCM Server] Found ${adminUsersWithTokens.length} target users with FCM tokens (roles: ${targetRoles.join(', ')})`);
+          console.log(`[FCM Server] Found ${tokensToSend.length} FCM tokens to send (roles: ${targetRoles.join(', ')})`);
 
-          for (const userDoc of adminUsersWithTokens) {
-            const user = userDoc.data();
-            const fcmToken = user.fcmToken;
-
+          for (const fcmToken of tokensToSend) {
             try {
               const messageId = await messaging.send({
                 token: fcmToken,
@@ -151,16 +146,16 @@ function startListeningToNotifications() {
                 },
               });
 
-              console.log(`[FCM Server] Message sent to ${user.id}: ${messageId}`);
+              console.log(`[FCM Server] Message sent with token ${fcmToken.substring(0, 10)}...: ${messageId}`);
               console.log(`[FCM Server] Notification: "${notification.title}" - "${notification.body}"`);
             } catch (error) {
-              console.error(`[FCM Server] Error sending to ${user.id}:`, error.message);
+              console.error(`[FCM Server] Error sending to token ${fcmToken.substring(0, 10)}...:`, error.message);
             }
           }
 
-          // Update sentToUsers count
-          await doc.ref.update({ sentToUsers: adminUsersWithTokens.length });
-          console.log(`[FCM Server] Notification ${doc.id} sent to ${adminUsersWithTokens.length} users`);
+          // Update sentToTokens count
+          await doc.ref.update({ sentToTokens: tokensToSend.length });
+          console.log(`[FCM Server] Notification ${doc.id} sent to ${tokensToSend.length} devices`);
         } catch (error) {
           console.error(`[FCM Server] Error processing notification ${doc.id}:`, error);
         } finally {

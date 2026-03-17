@@ -90,12 +90,12 @@ export class FcmService {
         return;
       }
 
-      // Save token to user's document
+      // Save token to user's fcmTokens array (support multiple devices/sessions)
       const userRef = doc(this.firestore, 'users', userId);
       await setDoc(
         userRef,
         {
-          fcmToken: token,
+          fcmTokens: [token], // Store as array to support multiple devices
           fcmTokenUpdatedAt: new Date(),
         },
         { merge: true },
