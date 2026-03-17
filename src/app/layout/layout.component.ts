@@ -70,16 +70,18 @@ import { AuthFacade } from '../features/auth/auth.facade';
             (toggleMenu)="isMenuOpen.set(!isMenuOpen())"
           ></app-header>
 
-          <main class="flex-1 relative overflow-hidden flex flex-col">
+          <main class="flex-1 overflow-hidden flex flex-col pb-14">
             <div class="flex-1 overflow-y-auto" id="main-content">
               <router-outlet></router-outlet>
             </div>
           </main>
-
-          @if (!isSplitPaneVisible()) {
-            <app-footer></app-footer>
-          }
         </div>
+
+        @if (!isSplitPaneVisible()) {
+          <div class="fixed bottom-0 left-0 right-0 z-40 w-full">
+            <app-footer></app-footer>
+          </div>
+        }
       </div>
     }
   `,
