@@ -74,12 +74,11 @@ export class App implements OnInit {
   }
 
   private initializeFcm(): void {
-    // Register service worker for push notifications
+    // Get default service worker registration (managed by provideServiceWorker)
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/firebase-messaging-sw.js')
+      navigator.serviceWorker.ready
         .then((registration) => {
-          console.log('[App] Service Worker registered:', registration);
+          console.log('[App] Service Worker ready:', registration);
           // Listen to foreground messages after SW is ready
           this.fcmService.listenToForegroundMessages((payload) => {
             console.log('[App] Foreground message received:', payload);
@@ -98,7 +97,7 @@ export class App implements OnInit {
           });
         })
         .catch((error) => {
-          console.error('[App] Service Worker registration failed:', error);
+          console.error('[App] Service Worker initialization failed:', error);
         });
     }
   }

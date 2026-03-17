@@ -25,9 +25,9 @@ export class PushNotificationService {
     data?: Record<string, string>,
   ): Promise<void> {
     try {
-      // Get all admin users with FCM tokens
+      // Get all admin users with FCM tokens (updated field name from fcmToken to fcmTokens)
       const usersRef = collection(this.firestore, 'users');
-      const q = query(usersRef, where('role', '==', 'ADMIN'), where('fcmToken', '!=', null));
+      const q = query(usersRef, where('role', '==', 'ADMIN'), where('fcmTokens', '!=', null));
 
       const snapshot = await getDocs(q);
       const users = snapshot.docs.map((doc) => doc.data() as User);

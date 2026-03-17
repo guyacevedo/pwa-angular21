@@ -20,24 +20,8 @@
   ],
   "dataGroups": [
     {
-      "name": "firebase-api",
-      "urls": [
-        "https://firestore.googleapis.com/**",
-        "https://*.firebaseio.com/**"
-      ],
-      "cacheConfig": {
-        "strategy": "freshness",
-        "maxSize": 100,
-        "maxAge": "1h",
-        "timeout": "10s"
-      }
-    },
-    {
       "name": "google-fonts",
-      "urls": [
-        "https://fonts.googleapis.com/**",
-        "https://fonts.gstatic.com/**"
-      ],
+      "urls": ["https://fonts.googleapis.com/**", "https://fonts.gstatic.com/**"],
       "cacheConfig": {
         "strategy": "performance",
         "maxSize": 20,
@@ -46,9 +30,7 @@
     },
     {
       "name": "cloudinary-images",
-      "urls": [
-        "https://res.cloudinary.com/**"
-      ],
+      "urls": ["https://res.cloudinary.com/**"],
       "cacheConfig": {
         "strategy": "performance",
         "maxSize": 50,

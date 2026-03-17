@@ -28,6 +28,7 @@ try {
       body: payload.notification?.body || '',
       icon: payload.notification?.icon || '/favicon.ico',
       badge: '/favicon.ico',
+      tag: 'app-notification',
       data: payload.data || {},
     };
 

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Messaging, getToken, onMessage } from '@angular/fire/messaging';
-import { Firestore, doc, setDoc } from '@angular/fire/firestore';
+import { Firestore, doc, setDoc, arrayUnion } from '@angular/fire/firestore';
 
 @Injectable({ providedIn: 'root' })
 export class FcmService {
@@ -95,7 +95,7 @@ export class FcmService {
       await setDoc(
         userRef,
         {
-          fcmTokens: [token], // Store as array to support multiple devices
+          fcmTokens: arrayUnion(token), // Accumulate tokens from multiple devices
           fcmTokenUpdatedAt: new Date(),
         },
         { merge: true },
