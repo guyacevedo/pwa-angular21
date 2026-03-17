@@ -24,17 +24,42 @@ const createPermissionGuard = (permissionCheck: (p: PermissionsService) => boole
   };
 };
 
-/** Guard para acceso a listado de usuarios */
-export const viewUsersGuard: CanActivateFn = createPermissionGuard((p) => p.canViewUsers());
-
-/** Guard para gestión de usuarios (crear/editar/eliminar) */
-export const manageUsersGuard: CanActivateFn = createPermissionGuard((p) => p.canManageUsers());
-
-/** Guard para gestión de roles y permisos */
-export const manageRolesGuard: CanActivateFn = createPermissionGuard((p) => p.canManageRoles());
-
-/** Guard para configuración de empresa */
+// Sistema
+export const viewUsersGuard:    CanActivateFn = createPermissionGuard((p) => p.canViewUsers());
+export const manageUsersGuard:  CanActivateFn = createPermissionGuard((p) => p.canManageUsers());
+export const manageRolesGuard:  CanActivateFn = createPermissionGuard((p) => p.canManageRoles());
 export const manageConfigGuard: CanActivateFn = createPermissionGuard((p) => p.canManageConfig());
 
-/** Guard legado: redirige a ADMIN si es posible ver usuarios */
+// Comercio
+export const viewContactosGuard:   CanActivateFn = createPermissionGuard((p) => p.canViewContactos());
+export const manageContactosGuard: CanActivateFn = createPermissionGuard((p) => p.canManageContactos());
+export const viewVentasGuard:      CanActivateFn = createPermissionGuard((p) => p.canViewVentas());
+export const manageVentasGuard:    CanActivateFn = createPermissionGuard((p) => p.canManageVentas());
+export const viewComprasGuard:     CanActivateFn = createPermissionGuard((p) => p.canViewCompras());
+export const manageComprasGuard:   CanActivateFn = createPermissionGuard((p) => p.canManageCompras());
+
+// Inventario
+export const viewInventarioGuard:   CanActivateFn = createPermissionGuard((p) => p.canViewInventario());
+export const manageInventarioGuard: CanActivateFn = createPermissionGuard((p) => p.canManageInventario());
+export const viewInsumosGuard:      CanActivateFn = createPermissionGuard((p) => p.canViewInsumos());
+export const manageInsumosGuard:    CanActivateFn = createPermissionGuard((p) => p.canManageInsumos());
+
+// Activos
+export const viewCavasGuard:   CanActivateFn = createPermissionGuard((p) => p.canViewCavas());
+export const manageCavasGuard: CanActivateFn = createPermissionGuard((p) => p.canManageCavas());
+
+// Logística
+export const viewViajesGuard:      CanActivateFn = createPermissionGuard((p) => p.canViewViajes());
+export const manageViajesGuard:    CanActivateFn = createPermissionGuard((p) => p.canManageViajes());
+export const viewCamionesGuard:    CanActivateFn = createPermissionGuard((p) => p.canViewCamiones());
+export const manageCamionesGuard:  CanActivateFn = createPermissionGuard((p) => p.canManageCamiones());
+
+// Finanzas
+export const viewPrestamosGuard:   CanActivateFn = createPermissionGuard((p) => p.canViewPrestamos());
+export const managePrestamosGuard: CanActivateFn = createPermissionGuard((p) => p.canManagePrestamos());
+export const viewNominaGuard:      CanActivateFn = createPermissionGuard((p) => p.canViewNomina());
+export const manageNominaGuard:    CanActivateFn = createPermissionGuard((p) => p.canManageNomina());
+export const viewReportesGuard:    CanActivateFn = createPermissionGuard((p) => p.canViewReportes());
+
+/** Guard legado */
 export const adminGuard: CanActivateFn = viewUsersGuard;

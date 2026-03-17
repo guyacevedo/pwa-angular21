@@ -51,7 +51,7 @@ export class DashboardPage implements OnInit {
     return u ? `${u.firstName} ${u.lastName ?? ''}`.trim() : 'Usuario';
   });
 
-  readonly roleLabel = computed(() => USER_ROLES_LABELS[this.user()?.role ?? 'GUEST']);
+  readonly roleLabel = computed(() => USER_ROLES_LABELS[this.user()?.role ?? 'CHOFER']);
   readonly statusLabel = computed(() => USER_STATUS_LABELS[this.user()?.status ?? 'INACTIVE']);
   readonly statusBadgeType = computed(() => {
     switch (this.user()?.status) {

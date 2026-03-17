@@ -18,6 +18,7 @@ import { StatusBadgeComponent } from '../../../../shared/components/status-badge
 import { AppSuccessModalComponent } from '../../../../shared/components/success-modal/success-modal.component';
 import { AppErrorModalComponent } from '../../../../shared/components/error-modal/error-modal.component';
 import { PermissionsFacade } from '../../../../core/facades/permissions.facade';
+import { RolePermission } from '../../../../core/services/role-permissions.service';
 
 interface RoleDef {
   role: UserRole;
@@ -25,6 +26,8 @@ interface RoleDef {
   description: string;
   badgeType: 'primary' | 'warning' | 'neutral';
 }
+
+type EditableRoleField = keyof Omit<RolePermission, 'key' | 'label' | 'propietario'>;
 
 @Component({
   selector: 'app-roles',
@@ -46,7 +49,7 @@ interface RoleDef {
         <h1 class="text-sm font-bold text-slate-800 dark:text-slate-100">Roles y Permisos</h1>
       </div>
 
-      <div class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <div class="max-w-5xl mx-auto px-4 py-6 space-y-6">
 
         <!-- Definición de roles -->
         <section>
@@ -54,18 +57,14 @@ interface RoleDef {
             <span class="inline-block size-1.5 bg-primary rounded-full"></span>
             Roles disponibles
           </p>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             @for (r of roleDefs; track r.role) {
-              <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-5">
-                <div class="flex items-center justify-between mb-3">
+              <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-4">
+                <div class="flex items-center justify-between mb-2">
                   <app-status-badge [text]="r.label" [type]="r.badgeType" size="md" />
-                  <span class="text-xs font-mono text-slate-300 dark:text-slate-600">{{ r.role }}</span>
+                  <span class="text-xs font-mono text-slate-300 dark:text-slate-600">{{ userCountByRole()[r.role] ?? 0 }}u</span>
                 </div>
                 <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{{ r.description }}</p>
-                <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-3">
-                  {{ userCountByRole()[r.role] ?? 0 }}
-                  <span class="font-normal text-slate-400"> usuario{{ (userCountByRole()[r.role] ?? 0) !== 1 ? 's' : '' }}</span>
-                </p>
               </div>
             }
           </div>
@@ -79,65 +78,48 @@ interface RoleDef {
               Permisos por rol
             </p>
             <p class="text-xs text-slate-400 dark:text-slate-500">
-              ADMIN siempre tiene todos los permisos
+              Propietario siempre tiene todos los permisos
             </p>
           </div>
-          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden overflow-x-auto">
             <!-- Header -->
-            <div class="grid grid-cols-[1fr_80px_100px_80px] border-b border-slate-100 dark:border-slate-700 px-4 py-3 bg-slate-50 dark:bg-slate-900/50">
+            <div class="min-w-[700px] grid grid-cols-[2fr_repeat(5,1fr)] border-b border-slate-100 dark:border-slate-700 px-4 py-3 bg-slate-50 dark:bg-slate-900/50">
               <p class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">Permiso</p>
-              <p class="text-xs font-bold text-center text-primary">Admin</p>
-              <p class="text-xs font-bold text-center text-amber-500">Operador</p>
-              <p class="text-xs font-bold text-center text-slate-400 dark:text-slate-500">Invitado</p>
+              @for (col of editableCols; track col.field) {
+                <p class="text-xs font-bold text-center" [class]="col.color">{{ col.label }}</p>
+              }
             </div>
             <!-- Rows -->
-            @for (perm of rolePermsService.permissions(); track perm.key; let i = $index) {
-              <div class="grid grid-cols-[1fr_80px_100px_80px] px-4 py-3 border-t border-slate-100 dark:border-slate-700"
-                   [class.bg-slate-50]="i % 2 !== 0" [class.dark:bg-slate-900/20]="i % 2 !== 0">
-                <p class="text-xs text-slate-600 dark:text-slate-300 font-medium self-center">{{ perm.label }}</p>
+            <div class="min-w-[700px]">
+              @for (perm of rolePermsService.permissions(); track perm.key; let i = $index) {
+                <div class="grid grid-cols-[2fr_repeat(5,1fr)] px-4 py-2.5 border-t border-slate-100 dark:border-slate-700"
+                     [class.bg-slate-50]="i % 2 !== 0" [class.dark:bg-slate-900/20]="i % 2 !== 0">
+                  <div class="self-center">
+                    <p class="text-xs text-slate-600 dark:text-slate-300 font-medium">{{ perm.label }}</p>
+                    <p class="text-[10px] text-slate-400 font-mono">{{ perm.key }}</p>
+                  </div>
 
-                <!-- Admin: siempre activo, no editable -->
-                <div class="flex justify-center items-center">
-                  <app-svg-icon icon="check" size="16px" class="text-emerald-500 opacity-40"></app-svg-icon>
+                  @for (col of editableCols; track col.field) {
+                    <div class="flex justify-center items-center">
+                      <button
+                        type="button"
+                        (click)="togglePerm(perm.key, col.field)"
+                        class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none"
+                        [class.bg-primary]="perm[col.field]"
+                        [class.bg-slate-200]="!perm[col.field]"
+                        [class.dark:bg-slate-600]="!perm[col.field]"
+                        [attr.aria-checked]="perm[col.field]"
+                        role="switch"
+                      >
+                        <span class="inline-block size-3.5 rounded-full bg-white shadow transition-transform"
+                              [style.transform]="perm[col.field] ? 'translateX(1.125rem)' : 'translateX(0.175rem)'">
+                        </span>
+                      </button>
+                    </div>
+                  }
                 </div>
-
-                <!-- Operator: toggle -->
-                <div class="flex justify-center items-center">
-                  <button
-                    type="button"
-                    (click)="togglePerm(perm.key, 'operator')"
-                    class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    [class.bg-amber-400]="perm.operator"
-                    [class.bg-slate-200]="!perm.operator"
-                    [class.dark:bg-slate-600]="!perm.operator"
-                    [attr.aria-checked]="perm.operator"
-                    role="switch"
-                  >
-                    <span class="inline-block size-3.5 rounded-full bg-white shadow transition-transform"
-                          [style.transform]="perm.operator ? 'translateX(1.125rem)' : 'translateX(0.175rem)'">
-                    </span>
-                  </button>
-                </div>
-
-                <!-- Guest: toggle -->
-                <div class="flex justify-center items-center">
-                  <button
-                    type="button"
-                    (click)="togglePerm(perm.key, 'guest')"
-                    class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    [class.bg-primary]="perm.guest"
-                    [class.bg-slate-200]="!perm.guest"
-                    [class.dark:bg-slate-600]="!perm.guest"
-                    [attr.aria-checked]="perm.guest"
-                    role="switch"
-                  >
-                    <span class="inline-block size-3.5 rounded-full bg-white shadow transition-transform"
-                          [style.transform]="perm.guest ? 'translateX(1.125rem)' : 'translateX(0.175rem)'">
-                    </span>
-                  </button>
-                </div>
-              </div>
-            }
+              }
+            </div>
           </div>
           <p class="text-xs text-slate-400 dark:text-slate-500 mt-2 px-1">
             Los cambios de permisos se aplican de inmediato para los usuarios conectados.
@@ -173,7 +155,6 @@ interface RoleDef {
                     </p>
                     <p class="text-xs text-slate-400 dark:text-slate-500 truncate">{{ user.email }}</p>
                   </div>
-                  <!-- Role selector con [selected] en cada option para fix del bug -->
                   <select
                     [disabled]="savingUserId() === user.id"
                     (change)="onRoleChange(user, $any($event.target).value)"
@@ -228,9 +209,21 @@ export class RolesPage {
   private pendingRole: UserRole | null = null;
 
   readonly roleDefs: RoleDef[] = [
-    { role: 'ADMIN',    label: USER_ROLES_LABELS.ADMIN,    description: USER_ROLES_DESCRIPTIONS.ADMIN,    badgeType: 'primary' },
-    { role: 'OPERATOR', label: USER_ROLES_LABELS.OPERATOR, description: USER_ROLES_DESCRIPTIONS.OPERATOR, badgeType: 'warning' },
-    { role: 'GUEST',    label: USER_ROLES_LABELS.GUEST,    description: USER_ROLES_DESCRIPTIONS.GUEST,    badgeType: 'neutral' },
+    { role: 'PROPIETARIO',  label: USER_ROLES_LABELS.PROPIETARIO,  description: USER_ROLES_DESCRIPTIONS.PROPIETARIO,  badgeType: 'primary' },
+    { role: 'ADMINISTRADOR',label: USER_ROLES_LABELS.ADMINISTRADOR,description: USER_ROLES_DESCRIPTIONS.ADMINISTRADOR,badgeType: 'primary' },
+    { role: 'SECRETARIO',   label: USER_ROLES_LABELS.SECRETARIO,   description: USER_ROLES_DESCRIPTIONS.SECRETARIO,   badgeType: 'warning' },
+    { role: 'BODEGA',       label: USER_ROLES_LABELS.BODEGA,       description: USER_ROLES_DESCRIPTIONS.BODEGA,       badgeType: 'warning' },
+    { role: 'CHOFER',       label: USER_ROLES_LABELS.CHOFER,       description: USER_ROLES_DESCRIPTIONS.CHOFER,       badgeType: 'neutral' },
+    { role: 'ADMIN_TI',     label: USER_ROLES_LABELS.ADMIN_TI,     description: USER_ROLES_DESCRIPTIONS.ADMIN_TI,     badgeType: 'primary' },
+  ];
+
+  /** Columnas editables de la matriz de permisos (todos excepto PROPIETARIO que es siempre true) */
+  readonly editableCols: { field: EditableRoleField; label: string; color: string }[] = [
+    { field: 'administrador', label: 'Admin',     color: 'text-primary' },
+    { field: 'secretario',    label: 'Secret.',   color: 'text-amber-500' },
+    { field: 'bodega',        label: 'Bodega',    color: 'text-emerald-600' },
+    { field: 'chofer',        label: 'Chofer',    color: 'text-sky-500' },
+    { field: 'adminTi',       label: 'TI',        color: 'text-violet-500' },
   ];
 
   readonly userCountByRole = computed(() => {
@@ -241,7 +234,7 @@ export class RolesPage {
     return counts;
   });
 
-  togglePerm(key: string, role: 'operator' | 'guest'): void {
+  togglePerm(key: string, role: EditableRoleField): void {
     this.rolePermsService.togglePermission(key, role);
   }
 

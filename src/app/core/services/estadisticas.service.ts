@@ -4,6 +4,7 @@ import { EstadisticasDiarias, KPIWidget } from '../models/estadisticas.model';
 import { UserFacade } from 'src/app/features/users/user.facade';
 import { AUTH_PROVIDER } from '../interfaces/auth-provider.interface';
 import { PermissionsService } from './permissions.service';
+import { USER_ROLES_LABELS } from '../types/user-role.type';
 
 export interface AlertaNegocio {
   tipo: 'warning' | 'danger' | 'info';
@@ -32,7 +33,7 @@ export class EstadisticasService {
 
   readonly estadisticasDiarias = computed<EstadisticasDiarias>(() => {
     const users = this.usuariosFacade.users();
-    const stats = {
+    const stats: EstadisticasDiarias = {
       fecha: this.hoy(),
       updatedAt: this.hoy(),
       usuariosTotales: 0,
@@ -41,6 +42,21 @@ export class EstadisticasService {
       usuariosDeshabilitados: 0,
       usuariosAdmin: 0,
       usuariosInvitados: 0,
+      // Campos de comercio (se populan desde otros servicios)
+      ventasDia: 0,
+      ventasMontoDia: 0,
+      comprasDia: 0,
+      comprasMontoDia: 0,
+      totalKilosProcesados: 0,
+      margenBruto: 0,
+      utilidadNeta: 0,
+      carteraTotalClientes: 0,
+      carteraTotalProveedores: 0,
+      inventarioValorizado: 0,
+      viajesActivos: 0,
+      cavasEnCirculacion: 0,
+      top10Productos: [],
+      top10Clientes: [],
     };
 
     for (const user of users) {
@@ -48,8 +64,8 @@ export class EstadisticasService {
       if (user.status === 'ACTIVE') stats.usuariosActivos++;
       if (user.status === 'INACTIVE') stats.usuariosInactivos++;
       if (user.status === 'DISABLED') stats.usuariosDeshabilitados++;
-      if (user.role === 'ADMIN') stats.usuariosAdmin++;
-      if (user.role === 'GUEST') stats.usuariosInvitados++;
+      if (user.role === 'PROPIETARIO' || user.role === 'ADMINISTRADOR' || user.role === 'ADMIN_TI') stats.usuariosAdmin++;
+      if (user.role === 'CHOFER') stats.usuariosInvitados++;
     }
 
     return stats;
@@ -127,9 +143,9 @@ export class EstadisticasService {
       },
       {
         label: 'Mi Rol',
-        value: currentUser.role === 'ADMIN' ? 'Administrador' : 'Invitado',
+        value: USER_ROLES_LABELS[currentUser.role] ?? currentUser.role,
         icon: 'user',
-        color: currentUser.role === 'ADMIN' ? 'primary' : 'slate',
+        color: 'primary',
       },
     ];
   });

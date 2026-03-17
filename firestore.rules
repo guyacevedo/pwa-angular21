@@ -3,84 +3,214 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ============= FUNCIONES AUXILIARES =============
-    
-    // Función auxiliar para verificar si el usuario tiene privilegios administrativos
+
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Roles con acceso completo de gestión
     function isAdmin() {
-      return request.auth != null &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+      return isAuthenticated() &&
+             userRole() in ['PROPIETARIO', 'ADMINISTRADOR', 'ADMIN_TI'];
     }
 
-    // Permitir gestión operativa y financiera
-    function canManageOperations() {
-      return request.auth != null &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['ADMIN', 'GUEST'];
+    // Roles con acceso comercial (ventas, compras, contactos)
+    function canManageComercio() {
+      return isAuthenticated() &&
+             userRole() in ['PROPIETARIO', 'ADMINISTRADOR', 'SECRETARIO'];
     }
 
-    // Verificar que campos requeridos existen
+    // Roles con acceso a inventario y bodega
+    function canManageBodega() {
+      return isAuthenticated() &&
+             userRole() in ['PROPIETARIO', 'ADMINISTRADOR', 'BODEGA'];
+    }
+
+    // Roles con acceso a logística (viajes, camiones)
+    function canManageLogistica() {
+      return isAuthenticated() &&
+             userRole() in ['PROPIETARIO', 'ADMINISTRADOR', 'CHOFER'];
+    }
+
+    // Lectura general (todos los autenticados pueden leer datos del negocio)
+    function canRead() {
+      return isAuthenticated();
+    }
+
     function hasRequiredFields(fields) {
       return request.resource.data.keys().hasAll(fields);
     }
 
-    // Verificar que solo se modifican campos permitidos
-    function onlyUpdating(allowedFields) {
-      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowedFields);
-    }
-
-    // ============= REGLAS DE COLECCIONES =============
+    // ============= REGLAS DE COLECCIONES EXISTENTES =============
 
     match /users/{userId} {
-      // Lectura pública para verificación de DNI en registro
       allow read: if true;
-
-      // Creación: Solo si es el propio usuario (registro)
-      allow create: if request.auth != null && 
+      allow create: if isAuthenticated() &&
                        request.auth.uid == userId &&
-                       hasRequiredFields(['email', 'dni', 'firstName', 'lastName', 'role']);
-
-      // Actualización: El propio usuario O un admin
-      allow update: if (request.auth != null && request.auth.uid == userId) || isAdmin();
-
-      // Eliminación: Solo admins
+                       hasRequiredFields(['email', 'firstName', 'lastName', 'role']);
+      allow update: if (isAuthenticated() && request.auth.uid == userId) || isAdmin();
       allow delete: if isAdmin();
     }
 
     match /configuracion/{docId} {
-      allow read: if request.auth != null;
-
-      // Solo administradores pueden modificar la configuración
+      allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
 
     match /sessions/{sessionId} {
-      // Authenticated users can do anything with their own sessions
-      allow create, read, update, delete: if request.auth != null &&
+      allow create, read, update, delete: if isAuthenticated() &&
                                              (request.resource.data.userId == request.auth.uid ||
                                               resource.data.userId == request.auth.uid);
     }
 
     match /notifications/{notifId} {
-      // Any authenticated user can create notifications (login/logout events)
-      allow create: if request.auth != null;
-      // Any authenticated user can read notifications
-      allow read: if request.auth != null;
-      // Any authenticated user can update (mark as read)
-      allow update: if request.auth != null;
-      // Only admins can delete
+      allow create: if isAuthenticated();
+      allow read: if isAuthenticated();
+      allow update: if isAuthenticated();
       allow delete: if isAdmin();
     }
 
     match /role_permissions/{docId} {
-      // Any authenticated user can read role permissions
-      allow read: if request.auth != null;
-      // Only admins can modify
+      allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
 
     match /config/{docId} {
-      // Any authenticated user can read (role-permissions doc lives here)
-      allow read: if request.auth != null;
-      // Only admins can write
+      allow read: if isAuthenticated();
       allow write: if isAdmin();
+    }
+
+    match /estadisticas/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // ============= REGLAS DE COLECCIONES DEL NEGOCIO =============
+
+    // Contactos (clientes y proveedores)
+    match /contactos/{docId} {
+      allow read: if canRead();
+      allow create, update: if canManageComercio();
+      allow delete: if isAdmin();
+    }
+
+    // Inventario de pescados
+    match /inventario/{docId} {
+      allow read: if canRead();
+      allow create, update: if canManageBodega();
+      allow delete: if isAdmin();
+    }
+
+    // Ajustes de inventario (log de movimientos)
+    match /ajustes-inventario/{docId} {
+      allow read: if canRead();
+      allow create: if canManageBodega();
+      allow update, delete: if isAdmin();
+    }
+
+    // Insumos (hielo, pita, sal, etc.)
+    match /insumos/{docId} {
+      allow read: if canRead();
+      allow create, update: if canManageBodega();
+      allow delete: if isAdmin();
+    }
+
+    // Compras a proveedores
+    match /compras/{docId} {
+      allow read: if canRead();
+      allow create: if canManageBodega() || canManageComercio();
+      allow update: if canManageBodega() || canManageComercio();
+      allow delete: if isAdmin();
+    }
+
+    // Abonos de compras
+    match /abonos-compras/{docId} {
+      allow read: if canRead();
+      allow create: if canManageComercio();
+      allow update, delete: if isAdmin();
+    }
+
+    // Ventas a clientes
+    match /ventas/{docId} {
+      allow read: if canRead();
+      allow create: if canManageComercio();
+      allow update: if canManageComercio() || canManageLogistica();
+      allow delete: if isAdmin();
+    }
+
+    // Abonos de ventas
+    match /abonos-ventas/{docId} {
+      allow read: if canRead();
+      allow create: if canManageComercio();
+      allow update, delete: if isAdmin();
+    }
+
+    // Cavas (neveras reutilizables)
+    match /cavas/{docId} {
+      allow read: if canRead();
+      allow create, update: if isAuthenticated() &&
+                               userRole() in ['PROPIETARIO', 'ADMINISTRADOR', 'BODEGA', 'CHOFER'];
+      allow delete: if isAdmin();
+    }
+
+    // Canastillas
+    match /canastillas/{docId} {
+      allow read: if canRead();
+      allow create, update: if canManageBodega();
+      allow delete: if isAdmin();
+    }
+
+    // Préstamos
+    match /prestamos/{docId} {
+      allow read: if canRead();
+      allow create, update: if isAuthenticated() &&
+                               userRole() in ['PROPIETARIO', 'ADMINISTRADOR'];
+      allow delete: if isAdmin();
+    }
+
+    // Abonos de préstamos
+    match /abonos-prestamos/{docId} {
+      allow read: if canRead();
+      allow create: if isAuthenticated() &&
+                       userRole() in ['PROPIETARIO', 'ADMINISTRADOR'];
+      allow update, delete: if isAdmin();
+    }
+
+    // Viajes de reparto
+    match /viajes/{docId} {
+      allow read: if canRead();
+      allow create: if isAuthenticated() &&
+                       userRole() in ['PROPIETARIO', 'ADMINISTRADOR', 'SECRETARIO'];
+      allow update: if canManageLogistica() || canManageComercio();
+      allow delete: if isAdmin();
+    }
+
+    // Camiones de la flota
+    match /camiones/{docId} {
+      allow read: if canRead();
+      allow create, update: if isAuthenticated() &&
+                               userRole() in ['PROPIETARIO', 'ADMINISTRADOR'];
+      allow delete: if isAdmin();
+    }
+
+    // Nómina diaria de bodega
+    match /nominas/{docId} {
+      allow read: if isAuthenticated() &&
+                     userRole() in ['PROPIETARIO', 'ADMINISTRADOR'];
+      allow create: if isAuthenticated() &&
+                       userRole() in ['PROPIETARIO', 'ADMINISTRADOR'];
+      allow update, delete: if isAdmin();
+    }
+
+    // Alertas del sistema
+    match /alertas/{docId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin();
     }
   }
 }

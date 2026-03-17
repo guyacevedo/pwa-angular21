@@ -66,7 +66,7 @@ export class FirebaseAuthService implements AuthRepository {
                   authUser.photoURL ||
                   'https://res.cloudinary.com/dfurubiqj/image/upload/v1759346209/default-profile_qzf9ga_mkixzk.png',
                 registrationDate: new Date(authUser.metadata.creationTime || Date.now()),
-                role: 'GUEST',
+                role: 'CHOFER',
                 status: 'DISABLED',
                 lastLogin: new Date(authUser.metadata.lastSignInTime || Date.now()),
                 lastLogout: new Date(authUser.metadata.lastSignInTime || Date.now()),

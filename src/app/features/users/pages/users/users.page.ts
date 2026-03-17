@@ -160,7 +160,7 @@ export class UsersPage {
       align: 'center',
       badgeTextFunction: (u) => USER_ROLES_LABELS[u.role],
       badgeColorFunction: (u) =>
-        u.role === 'ADMIN'
+        ['PROPIETARIO','ADMINISTRADOR','ADMIN_TI'].includes(u.role)
           ? 'bg-primary/10 text-primary border-primary/20'
           : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600',
     },

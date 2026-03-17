@@ -100,7 +100,7 @@ import { ModalFormUserComponent } from '../../components/modal-form-user/modal-f
               <div class="flex items-center justify-center sm:justify-start gap-2 mt-3 flex-wrap">
                 <app-status-badge
                   [text]="roleLabel()"
-                  [type]="user()!.role === 'ADMIN' ? 'primary' : 'neutral'"
+                  [type]="['PROPIETARIO','ADMINISTRADOR','ADMIN_TI'].includes(user()!.role) ? 'primary' : 'neutral'"
                   size="md"
                 />
                 <app-status-badge
@@ -203,7 +203,7 @@ export class UserDetailPage {
   readonly isLoading = signal(true);
   readonly isEditModalOpen = signal(false);
 
-  readonly roleLabel = computed(() => USER_ROLES_LABELS[this.user()?.role ?? 'GUEST']);
+  readonly roleLabel = computed(() => USER_ROLES_LABELS[this.user()?.role ?? 'CHOFER']);
   readonly statusLabel = computed(() => USER_STATUS_LABELS[this.user()?.status ?? 'INACTIVE']);
   readonly statusBadgeType = computed(() => {
     switch (this.user()?.status) {

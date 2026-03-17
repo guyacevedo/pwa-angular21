@@ -83,6 +83,72 @@ export class SidebarComponent {
   menuClose = output<void>();
 
   readonly menu = computed<MenuSection[]>(() => {
+    const sections: MenuSection[] = [];
+
+    // General
+    sections.push({
+      section: 'General',
+      items: [{ icon: 'home', label: 'Dashboard', url: '/dashboard' }],
+    });
+
+    // Comercio
+    const comercioItems: MenuItem[] = [];
+    if (this.permissions.canViewVentas()) {
+      comercioItems.push({ icon: 'shopping_bag', label: 'Ventas', url: '/ventas' });
+    }
+    if (this.permissions.canViewCompras()) {
+      comercioItems.push({ icon: 'scale', label: 'Compras', url: '/compras' });
+    }
+    if (this.permissions.canViewContactos()) {
+      comercioItems.push({ icon: 'people', label: 'Contactos', url: '/contactos' });
+    }
+    if (comercioItems.length > 0) {
+      sections.push({ section: 'Comercio', items: comercioItems });
+    }
+
+    // Inventario
+    const inventarioItems: MenuItem[] = [];
+    if (this.permissions.canViewInventario()) {
+      inventarioItems.push({ icon: 'fish', label: 'Pescados', url: '/inventario' });
+    }
+    if (this.permissions.canViewInsumos()) {
+      inventarioItems.push({ icon: 'cube', label: 'Insumos', url: '/insumos' });
+    }
+    if (this.permissions.canViewCavas()) {
+      inventarioItems.push({ icon: 'snow', label: 'Cavas', url: '/cavas' });
+    }
+    if (inventarioItems.length > 0) {
+      sections.push({ section: 'Inventario', items: inventarioItems });
+    }
+
+    // Logística
+    const logisticaItems: MenuItem[] = [];
+    if (this.permissions.canViewViajes()) {
+      logisticaItems.push({ icon: 'localShipping', label: 'Viajes', url: '/viajes' });
+    }
+    if (this.permissions.canViewCamiones()) {
+      logisticaItems.push({ icon: 'car', label: 'Camiones', url: '/camiones' });
+    }
+    if (logisticaItems.length > 0) {
+      sections.push({ section: 'Logística', items: logisticaItems });
+    }
+
+    // Finanzas
+    const finanzasItems: MenuItem[] = [];
+    if (this.permissions.canViewPrestamos()) {
+      finanzasItems.push({ icon: 'cash', label: 'Préstamos', url: '/prestamos' });
+    }
+    if (this.permissions.canViewNomina()) {
+      finanzasItems.push({ icon: 'wallet', label: 'Nómina', url: '/nomina' });
+    }
+    if (this.permissions.canViewReportes()) {
+      finanzasItems.push({ icon: 'report', label: 'Reportes', url: '/reportes' });
+    }
+    if (finanzasItems.length > 0) {
+      sections.push({ section: 'Finanzas', items: finanzasItems });
+    }
+
+    // Administración
     const adminItems: MenuItem[] = [];
     if (this.permissions.canViewUsers()) {
       adminItems.push({ icon: 'people', label: 'Usuarios', url: '/users' });
@@ -90,20 +156,10 @@ export class SidebarComponent {
     if (this.permissions.canManageConfig()) {
       adminItems.push({ icon: 'card', label: 'Configuración', url: '/configuracion' });
     }
+    if (adminItems.length > 0) {
+      sections.push({ section: 'Administración', items: adminItems });
+    }
 
-    return [
-      {
-        section: 'General',
-        items: [{ icon: 'home', label: 'Dashboard', url: '/dashboard' }],
-      },
-      ...(adminItems.length > 0
-        ? [
-            {
-              section: 'Administración',
-              items: adminItems,
-            },
-          ]
-        : []),
-    ];
+    return sections;
   });
 }

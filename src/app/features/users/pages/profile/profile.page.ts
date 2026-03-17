@@ -110,7 +110,7 @@ interface ProfileFormValue {
                 <div class="flex items-center gap-2 mt-2 flex-wrap">
                   <app-status-badge
                     [text]="roleLabel()"
-                    [type]="user()!.role === 'ADMIN' ? 'primary' : 'neutral'"
+                    [type]="['PROPIETARIO','ADMINISTRADOR','ADMIN_TI'].includes(user()!.role) ? 'primary' : 'neutral'"
                     size="sm"
                   />
                   <app-status-badge
@@ -238,7 +238,7 @@ export class ProfilePage {
   readonly user: Signal<User | null> = this.authFacade.user;
   readonly isLoading: Signal<boolean> = this.userFacade.isLoading;
 
-  readonly roleLabel = computed(() => USER_ROLES_LABELS[this.user()?.role ?? 'GUEST']);
+  readonly roleLabel = computed(() => USER_ROLES_LABELS[this.user()?.role ?? 'CHOFER']);
   readonly statusLabel = computed(() => USER_STATUS_LABELS[this.user()?.status ?? 'INACTIVE']);
   readonly statusBadgeType = computed(() => {
     switch (this.user()?.status) {

@@ -27,7 +27,7 @@ export class PushNotificationService {
     try {
       // Get all admin users with FCM tokens
       const usersRef = collection(this.firestore, 'users');
-      const q = query(usersRef, where('role', '==', 'ADMIN'), where('fcmToken', '!=', null));
+      const q = query(usersRef, where('role', 'in', ['PROPIETARIO', 'ADMINISTRADOR', 'ADMIN_TI']), where('fcmToken', '!=', null));
 
       const snapshot = await getDocs(q);
       const users = snapshot.docs.map((doc) => doc.data() as User);
