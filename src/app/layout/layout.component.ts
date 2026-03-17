@@ -84,7 +84,7 @@ import { AuthFacade } from '../features/auth/auth.facade';
     }
   `,
   host: {
-    class: 'block h-full w-full overflow-hidden',
+    class: 'flex flex-col h-full w-full overflow-hidden',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

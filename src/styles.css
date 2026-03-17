@@ -125,8 +125,7 @@ textarea {
 /* iOS PWA full-height fix */
 app-root {
   display: block;
-  min-height: 100dvh;
-  min-height: 100vh;
+  height: 100%;
 }
 
 /* Safe Area Support for iOS Notch/Dynamic Island */
